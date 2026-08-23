@@ -22,6 +22,12 @@ export const serverEventSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('assistant_greeting'), text: z.string() }),
   z.object({ type: z.literal('assistant_done'), text: z.string() }),
   z.object({ type: z.literal('interrupted') }),
+  z.object({
+    type: z.literal('emotion'),
+    label: z.string(),
+    confidence: z.number(),
+    source: z.string().optional(),
+  }),
   z.object({ type: z.literal('error'), message: z.string() }),
 ]);
 

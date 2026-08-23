@@ -60,25 +60,22 @@ States: `listening → transcribing → generating → speaking → listening`.
 
 ## Personas (conversational modes)
 
-Before a conversation, the user picks **who they're talking to**. Each persona (`config/personas/*.yaml`, loaded by `backend/core/personas.py`) is a distinct system prompt + behavior flags:
+The application runs in a single persona mode: **Medusa** (`config/personas/medusa.yaml`, loaded by `backend/core/personas.py`), representing "the friend to share all the things":
 
 | Persona | Role | Special |
 |---|---|---|
-| Clarity | philosophical mentor (default) | — |
-| Engineer | technical sounding board | — |
-| General | open, casual companion | — |
-| Coach | next steps + accountability | — |
-| Friend | a friend who knows you | `proactive` + `cross_session_memory` |
+| Medusa | friend to share all things (default) | `proactive` + `cross_session_memory` |
 
-The persona is **locked per conversation** — stored in the `sessions.persona` column, chosen on the Begin screen, shown in the session drawer. Resuming a saved conversation restores its persona; you can't change a conversation's voice mid-way.
+The persona is **locked** as Medusa for all conversations (stored in the `sessions.persona` column).
 
-**Friend** is special on two axes:
-- *Proactive*: on a fresh Friend conversation the pipeline generates and speaks a greeting first (`assistant_greeting` event) — the user doesn't have to start.
-- *Cross-session memory*: when a Friend conversation ends (disconnect, or switching away), the LLM writes a 1–3 sentence summary into the `memories` table. The next Friend conversation injects those summaries into the `{memory}` slot of its prompt, so Friend "remembers" across sessions. Summaries are bounded (most-recent N) so they never blow the context budget. The prompt forbids inventing history not in memory.
+**Medusa** features:
+- *Proactive*: on a fresh Medusa conversation the pipeline generates and speaks a greeting first (`assistant_greeting` event) — the user doesn't have to start.
+- *Cross-session memory*: when a Medusa conversation ends (disconnect, or switching away), the LLM writes a 1–3 sentence summary into the `memories` table. The next Medusa conversation injects those summaries into the `{memory}` slot of its prompt, so Medusa "remembers" across sessions. Summaries are bounded (most-recent N) so they never blow the context budget. The prompt forbids inventing history not in memory.
 
-## Persistence
+## Local Time-Series Logging & Persistence
 
-SQLite (`backend/db.py`) in the `clarity-data` volume: `sessions` (with `persona`), `messages`, and `memories` (Friend's rolling summaries) tables. The first user message becomes the session title. A lightweight migration (`Database._migrate`) adds the `persona` column to pre-existing DBs. The frontend stores the active session id in `localStorage` and resumes it over the WS.
+- **Local Time-Series Logging**: Time-series log files are written locally to the `/app/logs/medusa.log` file, using python's `TimedRotatingFileHandler` to automatically rotate daily at midnight (keeping up to 30 past log files). This logs directory is mapped as a volume `./logs:/app/logs` in `docker-compose.yml` to persist logs locally on the host filesystem.
+- **SQLite Database**: SQLite database files are saved as `medusa.db` (`backend/db.py`) in the mapped data volume: contains `sessions` (with `persona`), `messages`, and `memories` (Medusa's rolling summaries) tables. The first user message becomes the session title. The frontend stores the active session id in `localStorage` and resumes it over the WS.
 
 ## Frontend (Quiet Room)
 

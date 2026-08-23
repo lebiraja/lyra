@@ -1,13 +1,13 @@
 # Emotion-Aware Conversation — Research & Implementation Plan
 
-> **Scope:** English-only (`eng_Latn`). Streaming mode only (batch mode untouched).  
-> **Goal:** Make Athena feel like talking to a human by adding two new real-time sensing channels — **facial expression** (webcam) and **voice emotion** (same audio stream) — and feeding both as context into the conversation layer.
+> **Scope:** English-only (`eng_Latn`). Streaming mode only.  
+> **Goal:** Make Clarity feel like talking to a human by adding two new real-time sensing channels — **facial expression** (webcam) and **voice emotion** (same audio stream) — and feeding both as context into the conversation layer.
 
 ---
 
 ## 1. The Problem We're Solving
 
-Right now Athena's streaming pipeline receives **pure audio** and produces **pure audio**. It has zero awareness of how the speaker *feels*. It can't tell if you're frustrated, confused, excited, or grieving. This means:
+Right now Clarity's streaming pipeline receives **pure audio** and produces **pure audio**. It has zero awareness of how the speaker *feels*. It can't tell if you're frustrated, confused, excited, or grieving. This means:
 
 - The LLM response (if there is one) is emotionally blind — same tone regardless of what you're feeling
 - TTS output is monotone per session — no prosody shift based on emotional state
@@ -18,13 +18,13 @@ A human conversation partner adjusts constantly:
 - They hear your voice crack and slow down
 - They notice you're excited and match your energy
 
-This doc defines how to replicate that for Athena — what models to use, how they fit in the pipeline, what the latency cost is, and what the UX difference looks like.
+This doc defines how to replicate that for Clarity — what models to use, how they fit in the pipeline, what the latency cost is, and what the UX difference looks like.
 
 ---
 
 ## 2. Current Pipeline (Streaming Mode)
 
-This is what exists today (from `streaming-mode.md`):
+This is what exists today in Clarity:
 
 ```
 Browser webcam mic audio
@@ -34,18 +34,18 @@ Browser webcam mic audio
          │ sentence audio (numpy array)
          ▼
 [STT — faster-whisper large-v3-turbo]   ~350ms
-         │ English text
+         │ text + language
          ▼
-[MT — IndicTrans2 bypass (eng→eng)]    ~0ms (same lang bypass)
-         │ text
+[LLM — Qwen3-4B via llama.cpp]
+         │ token stream
          ▼
-[TTS — IndicF5 with fixed ref voice]   ~2.7–5s
+[TTS — Kokoro / Piper]   ~150ms to first sentence audio
          │ PCM audio
          ▼
 Browser plays audio via Web Audio API
 ```
 
-**What's missing:** Athena knows *what* was said but not *how* the speaker feels. The response is contextually accurate but emotionally deaf.
+**What's missing:** Clarity knows *what* was said but not *how* the speaker feels. The response is contextually accurate but emotionally deaf.
 
 ---
 
@@ -78,16 +78,15 @@ Browser: webcam + mic running simultaneously
                     ▼
           [Context Builder]
             builds emotion-aware
-            system prompt prefix
+            system prompt fragment
                     │
                     ▼
-          [Optional LLM Layer / Response Generator]
-            Gemini / Claude API with
+          [Qwen3-4B via llama.cpp]
             emotion-enriched system context
                     │ response text
                     ▼
           [TTS with prosody hints]
-            IndicF5 — nfe=16
+            Kokoro / Piper
             (future: speed/pitch adjust
              based on emotion)
                     │
@@ -125,25 +124,23 @@ After evaluating the field, **EmotiEffNet-B0** from the [EmotiEffLib / HSEmotion
 **Why EmotiEffNet-B0:**
 - Designed specifically for real-time affective computing
 - ONNX export is first-class — ships with quantized ONNX weights
-- Runs entirely on CPU, leaving the GPU exclusively for Whisper + IndicF5
+- Runs entirely on CPU, leaving the GPU exclusively for Whisper + Qwen inference
 - 4–6ms per frame means we can run at 5 FPS (200ms intervals) with negligible CPU load
 - Outputs 8 emotion classes (neutral, happy, sad, surprise, fear, disgust, anger, contempt) + valence/arousal dimensions
 - Production-tested in ABAW (Affective Behavior Analysis in-the-Wild) competitions
 
-**Face detection pipeline (before FER):**
+**Frame pipeline:**
 ```
-webcam frame (raw)
+webcam frame (JPEG)
     ↓
-MediaPipe BlazeFace  ← ~1ms CPU, detects face bounding box
+decode to RGB
     ↓
-Crop + resize to 112×112
-    ↓
-EmotiEffNet-B0 ONNX inference
+HSEmotion / EmotiEffNet-B0 ONNX inference
     ↓
 softmax → {emotion: str, confidence: float, valence: float, arousal: float}
 ```
 
-MediaPipe BlazeFace handles face detection and cropping. Never run the emotion classifier on the full frame.
+The current implementation uses `hsemotion-onnx` directly rather than a separate MediaPipe crop stage.
 
 #### FER Sampling Rate
 
@@ -290,11 +287,11 @@ System prompt prefix:
 
 ### 6.2 TTS Prosody Hints (Future: v0.6)
 
-Currently IndicF5 doesn't accept explicit speed/pitch controls. But the emotion state can influence:
+Currently Kokoro / Piper do not expose a rich emotion-control surface. But the emotion state can influence:
 
 - **nfe_step**: increase from 16 to 20 for sad/calm states (more careful synthesis) 
 - **Sentence pacing**: insert longer pauses between sentences for sad/fearful
-- **Future**: when IndicF5 supports style tokens or a controllable TTS backend is integrated, map arousal → speed and valence → pitch shift
+- **Future**: when a more controllable TTS backend is integrated, map arousal → speed and valence → pitch shift
 
 For now, the emotional response is purely at the **text level** via the LLM.
 
@@ -322,8 +319,8 @@ For now, the emotional response is purely at the **text level** via the LLM.
                     ▼                 ▼
 ┌─────────────────┐   ┌──────────────────────────────────────┐
 │ VAD Loop        │   │ FER Loop (runs every 200ms)          │
-│ Silero VAD      │   │  MediaPipe BlazeFace → crop          │
-│ sentence detect │   │  EmotiEffNet-B0 ONNX → emotion       │
+│ Silero VAD      │   │  HSEmotion / EmotiEffNet-B0 ONNX     │
+│ sentence detect │   │  → emotion buffer                    │
 │                 │   │  → sliding window buffer (last 5)    │
 └────────┬────────┘   └─────────────────────┬────────────────┘
          │ sentence audio                    │ FER snapshot
@@ -348,11 +345,11 @@ faster-whisper     wav2vec2-base            │
            with emotion annotation
              │
              ▼
-         [LLM Call — Gemini/Claude]
+         [LLM Call — Qwen3-4B / llama.cpp]
            emotion-aware response
              │ response text
              ▼
-         [TTS — IndicF5, nfe=16]
+         [TTS — Kokoro / Piper]
              │ PCM audio
              ▼
          Browser plays via Web Audio API
@@ -367,11 +364,11 @@ faster-whisper     wav2vec2-base            │
 | Component | Where it runs | Latency | When |
 |---|---|---|---|
 | FER (EmotiEffNet-B0 ONNX) | CPU | ~4–6ms | Every 200ms, async, NOT in critical path |
-| MediaPipe BlazeFace | CPU | ~1ms | Every 200ms, async |
+| JPEG decode + FER preprocessing | CPU | ~1–3ms | Every 200ms, async |
 | SER (wav2vec2-base) | CPU | ~80–120ms | In parallel with STT at VAD boundary |
 | Emotion fusion | CPU | <1ms | After SER result arrives |
 | Context builder | CPU | <1ms | Immediately after fusion |
-| LLM API call | Network | ~300–800ms | NEW — not in original batch pipeline |
+| LLM call | GPU + local network hop | existing path | Already present in Clarity |
 
 ### 8.2 Overall Latency Budget (Revised)
 
@@ -450,54 +447,43 @@ We're now capturing 6 out of the 10 primary human conversational cues. The two u
 
 ---
 
-## 11. New Files to Create / Modify
+## 11. Files Created & Modified
 
 ### New Files
 
 | File | Purpose |
 |---|---|
-| `athena/fer.py` | `FacialEmotionRecognizer`: MediaPipe + EmotiEffNet-B0 ONNX, 200ms sampling loop |
-| `athena/ser.py` | `SpeechEmotionRecognizer`: wav2vec2-base wrapper, accepts numpy array |
-| `athena/emotion_fusion.py` | `EmotionFusion`: weighted late fusion of FER + SER → `EmotionState` |
-| `athena/context_builder.py` | `EmotionContextBuilder`: assembles emotion-annotated system prompt |
-| `athena/llm.py` | `LLMRouter`: Gemini/Claude API call with emotion context, streaming response |
-| `docs/emotion-aware-conversation.md` | This document |
+| `backend/core/emotion.py` | Contains `EmotionState` definition, `SpeechEmotionRecognizer` (wav2vec2-base), `FacialEmotionRecognizer` (EmotiEffNet-B0 ONNX), `EmotionBuffer`, `EmotionFusion` weighted blender, and `emotion_context` compiler. |
+| `tests/test_emotion.py` | Unit tests for emotion dataclasses, sliding-window buffers, and blending/context-formatting logic. |
+| `tests/test_emotion_pipeline.py` | Integration tests verifying VAD boundary processing, parallel SER execution, and context prompt injection. |
 
 ### Modified Files
 
 | File | Change |
 |---|---|
-| `athena/stream_server.py` | Accept video frames over WS; launch FER loop; integrate SER into pipeline |
-| `athena/stream_pipeline.py` | Fork STT and SER in parallel; add emotion fusion + LLM step |
-| `athena/config.py` | Add `EmotionConfig` dataclass: `fer_sample_interval_ms=200`, `fer_confidence_threshold=0.4`, `ser_model_id`, `emotion_fusion_voice_weight=0.55` |
-| `requirements.txt` | Add: `mediapipe>=0.10`, `onnxruntime>=1.17`, `transformers>=4.40`, `emotiefflib>=1.0` |
-| `scripts/prefetch_models.py` | Download EmotiEffNet-B0 ONNX + wav2vec2-base SER weights at Docker build time |
-| `athena/static/streaming.html` | Add video capture (`getUserMedia` with `{video: true, audio: true}`) → send JPEG frames over WS |
-
-### Untouched
-
-| File | Why |
-|---|---|
-| `athena/stt.py` | STT is unchanged — we just run SER in parallel with it |
-| `athena/tts.py` | TTS is unchanged — emotion influences LLM text, not TTS directly yet |
-| `athena/mt.py` | MT is bypassed for eng→eng (same lang bypass) |
-| `athena/pipeline.py` | Batch mode untouched |
-| `app.py` | Gradio UI for batch mode untouched |
+| `backend/config.py` | Added configuration variables for emotion enabling, model IDs, confidence thresholds, and weights. |
+| `backend/main.py` | Added lifespans for loading models into app memory at server start, pre-warming on CPU. |
+| `backend/core/pipeline.py` | Embedded parallel voice recognition, majority-vote face recognition snapshotting, and system prompt injection. |
+| `backend/api/ws.py` | Handled `video_frame` payload, running async background loop for frame classification. |
+| `frontend/src/types/protocol.ts` | Added `emotion` event schemas to standard type signatures. |
+| `frontend/src/hooks/useConversation.ts` | Added `currentEmotion` state and frame sender callbacks. |
+| `frontend/src/hooks/useMicStream.ts` | Embedded dynamic video capture (5 FPS canvas capture fallback to audio-only on block). |
+| `frontend/src/App.tsx` | Wire up the frame sender and render the italic/pulsing user state indicator. |
+| `requirements.txt` | Add packages: `hsemotion-onnx`, `mediapipe`, `transformers`. |
+| `scripts/download_models.sh` | Integrated automated warm-ups for superb/wav2vec2-base-superb-er and HSEmotion models. |
 
 ---
 
-## 12. Implementation Sequence
+## 12. Verification & Testing
 
-1. **`athena/ser.py`** — simplest new component, testable standalone with a WAV file
-2. **`athena/fer.py`** — build FER loop, test with webcam frames
-3. **`athena/emotion_fusion.py`** — pure logic, no I/O, trivial to unit test
-4. **`athena/context_builder.py`** — templates + string assembly, no model needed
-5. **`athena/llm.py`** — wire up Gemini/Claude with the context builder output
-6. **`athena/stream_pipeline.py`** — integrate SER parallel fork + emotion fusion into pipeline
-7. **`athena/stream_server.py`** — add video frame WebSocket handling + FER loop integration
-8. **`athena/static/streaming.html`** — add video capture + JPEG frame sending
-9. **`scripts/prefetch_models.py`** — add model downloads
-10. **Docker** — update `requirements.txt` + rebuild
+Verify that all tests run successfully within the docker container:
+```bash
+docker compose run --rm backend pytest tests/ -v
+```
+Verify that frontend compiles without errors:
+```bash
+docker compose build frontend
+```
 
 ---
 
@@ -507,13 +493,12 @@ Both new models run on CPU only. VRAM budget is **identical** to the current str
 
 | Component | VRAM |
 |---|---|
-| faster-whisper large-v3-turbo | ~1.5 GB |
-| IndicF5 DiT + Vocos | ~1.5 GB |
-| IndicTrans2 trio (8-bit) | ~1.0 GB |
-| CUDA overhead | ~1.0 GB |
+| Qwen3-4B Q4_K_M via llama.cpp | ~3.5 GB |
+| faster-whisper large-v3-turbo | ~1.3 GB |
+| Kokoro + Piper + Silero | 0 |
 | EmotiEffNet-B0 ONNX | **0 — CPU only** |
 | wav2vec2-base SER | **0 — CPU only** |
-| **Total** | **~5.0 GB** |
+| **Total** | **~4.8 GB** |
 
 ---
 
@@ -521,7 +506,7 @@ Both new models run on CPU only. VRAM budget is **identical** to the current str
 
 | Question | Options | Recommendation |
 |---|---|---|
-| **LLM backend** | Gemini Flash 2.0, Claude Haiku, local Ollama | Gemini Flash 2.0 — lowest latency API, cheapest, already in Lebi's stack |
+| **LLM backend** | Current local llama.cpp service, larger future local model | Keep current local llama.cpp service |
 | **Video frame format over WS** | JPEG at quality 50, WebP, raw pixels | JPEG q50 — good balance of bandwidth vs decode speed |
 | **FER sampling interval** | 100ms, 200ms, 500ms | 200ms — 5fps is plenty for emotion changes, minimal CPU |
 | **Emotion label mapping** | 7-class to 5-class (PERMA style)? | Keep 7-class natively; map to 5-class (happy/sad/angry/fearful/neutral) for prompt injection |

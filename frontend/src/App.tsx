@@ -26,7 +26,7 @@ export default function App() {
     onAudio: playback.enqueue,
     onInterrupted: playback.flush,
   });
-  const mic = useMicStream(conversation.sendAudio);
+  const mic = useMicStream(conversation.sendAudio, conversation.sendVideoFrame);
 
   const begin = useCallback(
     async (personaId: string) => {
@@ -61,7 +61,7 @@ export default function App() {
   const status = STATE_LABEL[conversation.state] ?? '';
   const personaName = conversation.persona
     ? conversation.persona.charAt(0).toUpperCase() + conversation.persona.slice(1)
-    : 'Clarity';
+    : 'Medusa';
 
   return (
     <main className="mx-auto flex h-full max-w-2xl flex-col px-5">
@@ -120,19 +120,26 @@ export default function App() {
           active={mic.isActive && (conversation.state === 'listening' || conversation.state === 'transcribing')}
         />
 
-        <div className="flex items-center justify-center gap-2 text-xs tracking-widest text-ink-faint uppercase">
-          <span
-            className={`inline-block h-1.5 w-1.5 rounded-full ${
-              conversation.state === 'speaking'
-                ? 'animate-breathe bg-ember'
-                : conversation.state === 'generating'
-                  ? 'animate-breathe bg-ink-dim'
-                  : conversation.state === 'listening' || conversation.state === 'transcribing'
-                    ? 'bg-ember'
-                    : 'bg-ink-faint'
-            }`}
-          />
-          {status}
+        <div className="flex flex-col items-center justify-center gap-1.5">
+          <div className="flex items-center gap-2 text-xs tracking-widest text-ink-faint uppercase">
+            <span
+              className={`inline-block h-1.5 w-1.5 rounded-full ${
+                conversation.state === 'speaking'
+                  ? 'animate-breathe bg-ember'
+                  : conversation.state === 'generating'
+                    ? 'animate-breathe bg-ink-dim'
+                    : conversation.state === 'listening' || conversation.state === 'transcribing'
+                      ? 'bg-ember'
+                      : 'bg-ink-faint'
+              }`}
+            />
+            {status}
+          </div>
+          {conversation.currentEmotion && (
+            <div className="text-[10px] tracking-wider text-ink-faint/80 lowercase italic animate-pulse">
+              user state: {conversation.currentEmotion.label} ({Math.round(conversation.currentEmotion.confidence * 100)}% confidence)
+            </div>
+          )}
         </div>
 
         {(mic.error ?? conversation.error) && (

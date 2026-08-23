@@ -48,7 +48,33 @@ class Settings(BaseSettings):
     ALLOW_BARGE_IN: bool = False
     ECHO_TAIL_S: float = 0.8
 
-    DB_PATH: Path = BASE_DIR / "data" / "clarity.db"
+    # Emotion detection (CPU-only, opt-in)
+    EMOTION_ENABLED: bool = True
+    EMOTION_FER_ENABLED: bool = True
+    EMOTION_FER_INTERVAL_MS: int = 200
+    EMOTION_FER_CONFIDENCE_THRESHOLD: float = 0.4
+    EMOTION_SER_CONFIDENCE_THRESHOLD: float = 0.3
+    EMOTION_SER_MIN_AUDIO_S: float = 1.0
+    EMOTION_VOICE_WEIGHT: float = 0.55
+    EMOTION_FACE_WEIGHT: float = 0.45
+    EMOTION_SER_MODEL: str = "superb/wav2vec2-base-superb-er"
+
+    MEMORY_ENABLED: bool = True
+    MEMORY_HYBRID_RETRIEVAL: bool = True
+    MEMORY_RECENT_MESSAGE_LIMIT: int = 8
+    MEMORY_SEMANTIC_LIMIT: int = 8
+    MEMORY_CONSOLIDATE_ON_SWITCH: bool = True
+
+    # Semantic memory graph store (off until runtime wiring is enabled)
+    SEMANTIC_MEMORY_ENABLED: bool = False
+    NEO4J_URI: str = "bolt://localhost:7687"
+    NEO4J_USERNAME: str = "neo4j"
+    NEO4J_PASSWORD: str = "clarity-memory-dev"
+    NEO4J_DATABASE: str = "neo4j"
+    NEO4J_CONNECT_TIMEOUT_S: float = 5.0
+
+    DB_PATH: Path = BASE_DIR / "data" / "medusa.db"
+    LOGS_DIR: Path = BASE_DIR / "logs"
 
     @property
     def piper_tamil_model(self) -> Path:

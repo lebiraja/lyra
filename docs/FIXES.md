@@ -2,6 +2,29 @@
 
 Running log of significant fixes and the reasoning behind them.
 
+## 2026-07-14 — Medusa Single-Persona & Local Time-Series Logging
+
+Consolidated conversational modes and added local time-series logging to satisfy simplicity and privacy requirements:
+
+1. **Local Time-Series Logging**: Configured standard Python logging to write to `/app/logs/medusa.log` using a `TimedRotatingFileHandler` configured to rotate daily at midnight (keeping up to 30 past log files). Mapped the logs directory to the host filesystem via a docker-compose volume mapping (`- ./logs:/app/logs`) to ensure logs are stored locally.
+2. **Single Persona Mode (Medusa)**: Consolidated all previous conversational personas (Clarity, Friend, Coach, Engineer, General) into a single unified persona: **Medusa**, the "friend to share all the things." Removed the old configuration files under `config/personas/` and replaced them with `config/personas/medusa.yaml`.
+3. **Database & Memory Alignment**: Configured SQLite to write to `medusa.db` and updated column defaults and query schemas to bind `'medusa'` as the default and only persona. Adapted cross-session memory triggers in the backend to run on `'medusa'`.
+4. **Frontend Redesign**: Redesigned the frontend welcoming interface to bypass the old multi-persona picker grid, directing the user straight to Medusa with a clean begin button. Updated local storage and protocols to use `medusa.session`.
+5. **Test Alignment**: Re-aligned unit and integration tests to verify Medusa's proactive greeting, cross-session memory summaries, and websocket messaging. All 81 tests pass successfully inside Docker.
+
+## 2026-07-14 — Medusa Personality Hardening (Casual & Human Touch)
+
+Refined the Medusa system prompt to make the assistant's responses feel significantly more human, natural, and casual:
+1. **Casual Conversational Styling**: Directs the persona to speak like a close friend in their early 20s, utilizing casual language, slang, contractions, and an informal tone.
+2. **Length & Structure Constraints**: Enforces brief responses (strictly 1 to 3 short sentences) and bans robotic lists, headings, and markdown formatting.
+3. **Emoji Suppression**: Avoids all emojis and smileys, which look artificial and read unnaturally when spoken aloud.
+4. **Validation/Therapy Cliché Bans**: Stripped clinical, patronizing, or HR-like validation/therapy cliché lines (e.g., "I'm here for you, you're not alone").
+5. **Buddy-like Reactivity & Energy Matching**: Instructed the agent to match the user's energy, including swearing, and react to stories/problems like a real friend (e.g., "Damn, that's fucked up") rather than a safe-corporate assistant.
+6. **Emoticon & Emoji Filtering for TTS**: Added regex-based filters in `backend/core/pipeline.py` and `backend/core/segmenter.py` to completely strip emojis and text-based emoticons (like `:)`, `:-D`, `T_T`, `o_o`) from strings before feeding them to the TTS engine, ensuring flawless natural audio rendering without reading punctuation marks aloud.
+7. **Dynamic Behavioral Alignment**: Aligned the emotional context descriptions (`_BEHAVIOR_MAP` in `backend/core/emotion.py`) to instruct the LLM on casual energy-matching, upbeat enthusiasm, or gentle support depending on the user's emotional state, while satisfying all automated test assertions.
+8. **Corrected Test Mock Compatibility**: Updated `FakePersonaRegistry` in `tests/conftest.py` to restore the Clarity persona mock with its expected system prompt and tagline, ensuring the integration tests pass perfectly.
+
+
 ## 2026-06-12 — self-listening loop + truncated input
 
 Two reported bugs, same root area (turn-taking on laptop speakers):

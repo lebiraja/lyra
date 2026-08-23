@@ -6,7 +6,7 @@ import {
   type Message,
 } from '@/types/protocol';
 
-const SESSION_KEY = 'clarity.session';
+const SESSION_KEY = 'medusa.session';
 
 export interface ChatLine {
   id: string;
@@ -22,6 +22,7 @@ interface Conversation {
   sessionId: string | null;
   persona: string | null;
   error: string | null;
+  currentEmotion: { label: string; confidence: number } | null;
   /** Connect and open a brand-new conversation under the given persona. */
   start: (persona: string) => void;
   sendAudio: (pcm: ArrayBuffer) => void;
@@ -29,6 +30,7 @@ interface Conversation {
   setMuted: (muted: boolean) => void;
   /** Open an existing saved conversation (keeps its persona) or null for fresh-default. */
   switchSession: (sessionId: string | null, persona?: string) => Promise<void>;
+  sendVideoFrame: (base64: string) => void;
 }
 
 interface ConversationCallbacks {
@@ -46,6 +48,7 @@ export function useConversation({ onAudio, onInterrupted }: ConversationCallback
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [persona, setPersona] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [currentEmotion, setCurrentEmotion] = useState<{ label: string; confidence: number } | null>(null);
 
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectRef = useRef<number | undefined>(undefined);
@@ -109,6 +112,7 @@ export function useConversation({ onAudio, onInterrupted }: ConversationCallback
           setState(msg.state);
           break;
         case 'user_transcript':
+          setCurrentEmotion(null); // Reset emotion state on new user speech
           setLines((prev) => [...prev, { id: nextId(), role: 'user', content: msg.text }]);
           break;
         case 'assistant_delta':
@@ -129,6 +133,9 @@ export function useConversation({ onAudio, onInterrupted }: ConversationCallback
           streamingRef.current = '';
           setStreaming('');
           callbacksRef.current.onInterrupted();
+          break;
+        case 'emotion':
+          setCurrentEmotion({ label: msg.label, confidence: msg.confidence });
           break;
         case 'error':
           setError(msg.message);
@@ -158,6 +165,13 @@ export function useConversation({ onAudio, onInterrupted }: ConversationCallback
     if (ws?.readyState === WebSocket.OPEN) ws.send(pcm);
   }, []);
 
+  const sendVideoFrame = useCallback((base64: string) => {
+    const ws = wsRef.current;
+    if (ws?.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'video_frame', data: base64 }));
+    }
+  }, []);
+
   const sendText = useCallback((text: string) => {
     const ws = wsRef.current;
     if (ws?.readyState === WebSocket.OPEN && text.trim()) {
@@ -176,6 +190,7 @@ export function useConversation({ onAudio, onInterrupted }: ConversationCallback
       streamingRef.current = '';
       setStreaming('');
       setLines([]);
+      setCurrentEmotion(null);
       const ws = wsRef.current;
       if (ws?.readyState === WebSocket.OPEN) {
         // Socket already open (e.g. picking a new persona mid-session): send now.
@@ -192,6 +207,7 @@ export function useConversation({ onAudio, onInterrupted }: ConversationCallback
       streamingRef.current = '';
       setStreaming('');
       setLines([]);
+      setCurrentEmotion(null);
       pendingRef.current = { session_id: id, persona: chosenPersona ?? null };
       if (id) {
         localStorage.setItem(SESSION_KEY, id);
@@ -217,10 +233,12 @@ export function useConversation({ onAudio, onInterrupted }: ConversationCallback
     sessionId,
     persona,
     error,
+    currentEmotion,
     start,
     sendAudio,
     sendText,
     setMuted,
     switchSession,
+    sendVideoFrame,
   };
 }

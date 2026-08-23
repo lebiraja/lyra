@@ -11,7 +11,7 @@ from pathlib import Path
 import yaml
 
 PERSONAS_DIR = Path(__file__).resolve().parent.parent.parent / "config" / "personas"
-DEFAULT_PERSONA = "clarity"
+DEFAULT_PERSONA = "medusa"
 MEMORY_PLACEHOLDER = "{memory}"
 NO_MEMORY_TEXT = "You haven't talked before yet — this is the first time. Introduce yourself warmly."
 
@@ -61,7 +61,7 @@ class PersonaRegistry:
         return persona_id in self._personas
 
     def list(self) -> list[dict[str, str]]:
-        """Public listing for the frontend picker (Clarity first, then the rest)."""
+        """Public listing for the frontend picker (Medusa first, then the rest)."""
         ordered = sorted(
             self._personas.values(),
             key=lambda p: (p.id != DEFAULT_PERSONA, p.name.lower()),

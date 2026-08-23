@@ -31,8 +31,25 @@ echo "==> [4/4] VAD: Silero v5 ONNX (~2 MB)"
 [ -f models/silero/silero_vad.onnx ] || curl -L --fail -o models/silero/silero_vad.onnx \
     "https://raw.githubusercontent.com/snakers4/silero-vad/master/src/silero_vad/data/silero_vad.onnx"
 
+echo "==> [5/5] Emotion Models: wav2vec2-base + HSEmotion ONNX (~380 MB)"
+python3 -c '
+import os
+from transformers import AutoFeatureExtractor, AutoModelForAudioClassification
+print("Downloading superb/wav2vec2-base-superb-er...")
+AutoFeatureExtractor.from_pretrained("superb/wav2vec2-base-superb-er")
+AutoModelForAudioClassification.from_pretrained("superb/wav2vec2-base-superb-er")
+
+try:
+    from hsemotion_onnx import HSEmotionRecognizer
+    print("Downloading HSEmotion enet_b0_8_best_afew...")
+    HSEmotionRecognizer(model_name="enet_b0_8_best_afew")
+except Exception as e:
+    print(f"Could not warm up HSEmotion: {e}")
+'
+
 echo
 echo "NOTE: STT (Whisper large-v3-turbo) auto-downloads on first run via HuggingFace cache (~1.5 GB)."
 echo
 echo "All models downloaded:"
 du -sh models/*
+

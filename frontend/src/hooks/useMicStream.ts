@@ -45,26 +45,57 @@ interface MicStream {
   analyser: AnalyserNode | null;
 }
 
-export function useMicStream(onChunk: (pcm: ArrayBuffer) => void): MicStream {
+export function useMicStream(
+  onChunk: (pcm: ArrayBuffer) => void,
+  onVideoFrame?: (base64: string) => void
+): MicStream {
   const [isActive, setIsActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [analyser, setAnalyser] = useState<AnalyserNode | null>(null);
   const ctxRef = useRef<AudioContext | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const intervalRef = useRef<number | null>(null);
+
   const onChunkRef = useRef(onChunk);
   onChunkRef.current = onChunk;
+  const onVideoFrameRef = useRef(onVideoFrame);
+  onVideoFrameRef.current = onVideoFrame;
 
   const start = useCallback(async () => {
     if (ctxRef.current) return;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          channelCount: 1,
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-        },
-      });
+      let stream: MediaStream;
+      let hasVideo = false;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            channelCount: 1,
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+          video: onVideoFrameRef.current
+            ? {
+                width: { ideal: 320 },
+                height: { ideal: 240 },
+                frameRate: { ideal: 5 },
+              }
+            : false,
+        });
+        hasVideo = !!onVideoFrameRef.current && stream.getVideoTracks().length > 0;
+      } catch {
+        // Fallback to audio only
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            channelCount: 1,
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+        });
+      }
+
       const ctx = new AudioContext({ sampleRate: 16000 });
       const workletUrl = URL.createObjectURL(
         new Blob([WORKLET_SOURCE], { type: 'application/javascript' })
@@ -81,6 +112,37 @@ export function useMicStream(onChunk: (pcm: ArrayBuffer) => void): MicStream {
       source.connect(analyserNode);
       source.connect(node);
 
+      // Start video snapshotting loop if video is active
+      if (hasVideo && onVideoFrameRef.current) {
+        const videoElement = document.createElement('video');
+        videoElement.srcObject = stream;
+        videoElement.autoplay = true;
+        videoElement.playsInline = true;
+        videoElement.muted = true;
+        videoElement.onloadedmetadata = () => {
+          videoElement.play().catch(() => {});
+        };
+
+        const canvas = document.createElement('canvas');
+        canvas.width = 320;
+        canvas.height = 240;
+        const ctx2d = canvas.getContext('2d');
+
+        const intervalId = window.setInterval(() => {
+          if (videoElement.readyState >= 2 && ctx2d) {
+            ctx2d.drawImage(videoElement, 0, 0, 320, 240);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.5);
+            const base64Str = dataUrl.split(',')[1];
+            if (base64Str) {
+              onVideoFrameRef.current?.(base64Str);
+            }
+          }
+        }, 200);
+
+        videoRef.current = videoElement;
+        intervalRef.current = intervalId;
+      }
+
       ctxRef.current = ctx;
       streamRef.current = stream;
       setAnalyser(analyserNode);
@@ -92,6 +154,15 @@ export function useMicStream(onChunk: (pcm: ArrayBuffer) => void): MicStream {
   }, []);
 
   const stop = useCallback(() => {
+    if (intervalRef.current !== null) {
+      window.clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.srcObject = null;
+      videoRef.current = null;
+    }
     streamRef.current?.getTracks().forEach((t) => t.stop());
     void ctxRef.current?.close();
     streamRef.current = null;

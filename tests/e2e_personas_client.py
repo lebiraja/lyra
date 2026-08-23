@@ -2,8 +2,8 @@
 
     docker compose exec -e PYTHONPATH=/app backend python tests/e2e_personas_client.py
 
-Verifies: each persona answers a typed turn; Friend greets proactively on a fresh
-session and remembers across sessions.
+Verifies: Medusa persona answers a typed turn, greets proactively on a fresh
+session, and remembers across sessions.
 """
 
 import asyncio
@@ -47,7 +47,7 @@ async def talk(persona_id: str, message: str, *, expect_greeting=False):
         if expect_greeting:
             out = await _recv_until_listening(ws, expect_greeting=True)
             assert out["persona"] == persona_id
-            assert out["greeting"], "Friend should greet first"
+            assert out["greeting"], "Medusa should greet first"
             print(f"  [{persona_id}] greeting: {out['greeting'][:80]}…")
         await ws.send(json.dumps({"type": "user_text", "text": message}))
         out = await _recv_until_listening(ws)
@@ -57,19 +57,16 @@ async def talk(persona_id: str, message: str, *, expect_greeting=False):
 
 
 async def main():
-    print("Each persona answers a typed turn:")
-    await talk("clarity", "I feel stuck in my career.")
-    await talk("engineer", "Should I use Postgres or SQLite for a local desktop app?")
-    await talk("general", "Just had a long day, nothing major.")
-    await talk("coach", "I want to start running but keep putting it off.")
+    print("Medusa answers a typed turn:")
+    await talk("medusa", "I feel stuck in my career.")
 
-    print("\nFriend greets proactively + remembers:")
-    await talk("friend", "Work was rough but the demo went well, I'm relieved.", expect_greeting=True)
+    print("\nMedusa greets proactively + remembers:")
+    await talk("medusa", "Work was rough but the demo went well, I'm relieved.", expect_greeting=True)
     print("  (memory summary written on disconnect)")
 
-    # New Friend session should load the memory and greet with continuity.
-    print("\nSecond Friend session (should remember the demo):")
-    out = await talk("friend", "Hey again.", expect_greeting=True)
+    # New Medusa session should load the memory and greet with continuity.
+    print("\nSecond Medusa session (should remember the demo):")
+    out = await talk("medusa", "Hey again.", expect_greeting=True)
     print(f"  recall greeting: {out['greeting'][:120]}")
 
     print("\nE2E PERSONAS: PASS")

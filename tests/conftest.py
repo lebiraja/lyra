@@ -88,10 +88,10 @@ class FakePersonaRegistry:
                 proactive=False, cross_session_memory=False,
                 system_prompt="You are a test mentor.",
             ),
-            "friend": Persona(
-                id="friend", name="Friend", tagline="remembers you", voice="af_heart",
+            "medusa": Persona(
+                id="medusa", name="Medusa", tagline="the friend to share all the things", voice="af_heart",
                 proactive=True, cross_session_memory=True,
-                system_prompt="You are a friend. What you remember:\n{memory}",
+                system_prompt="You are Medusa, the friend to share all the things. What you remember:\n{memory}",
             ),
         }
 
@@ -142,7 +142,14 @@ def personas():
 
 @pytest.fixture
 def make_pipeline(db, collector, personas):
-    def _make(llm=None, stt=None, tts=None, registry=None, turn_detector=None) -> ConversationPipeline:
+    def _make(
+        llm=None,
+        stt=None,
+        tts=None,
+        registry=None,
+        turn_detector=None,
+        **kwargs,
+    ) -> ConversationPipeline:
         return ConversationPipeline(
             stt=stt or FakeSTT(),
             tts=tts or FakeTTS(),
@@ -154,6 +161,7 @@ def make_pipeline(db, collector, personas):
             send_json=collector.send_json,
             send_bytes=collector.send_bytes,
             stats=LatencyStats(),
+            **kwargs,
         )
 
     return _make

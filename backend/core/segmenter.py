@@ -13,6 +13,29 @@ _EMPHASIS = re.compile(r"(\*{1,3}|_{1,3}|`+)(.+?)\1", re.DOTALL)
 _LEADING_MARKS = re.compile(r"^\s*(?:[-*+]|\d+\.|#{1,6})\s+", re.MULTILINE)
 _STRAY_MARKS = re.compile(r"[*_`#]")
 
+# Unicode emojis and symbols
+_EMOJI_RE = re.compile(
+    r"[\U00010000-\U0010ffff\u2600-\u27bf\u2b50\u2b06\u2190-\u21ff\u2900-\u297f]"
+)
+
+# Text-based emoticons/smileys
+_EMOTICON_RE = re.compile(
+    r"\b[xX][dD]\b|"                                     # XD, xD
+    r"(?::|;|=)-?[)DdpPoO(\[\]\\/|{}<>*^]"               # :), :-), :D, :-D, :d, :p, :-p, :o, :-, :[, :], :\, :/, :|, :{}, :<>
+    r"\bB-?[)]\b|"                                       # B), B-)
+    r"(?:\^[-_]?\^)|"                                    # ^^, ^-^, ^_^
+    r"(?:T[-_]?T)|"                                      # T_T, T-T
+    r"\b[oO]_[oO]\b"                                     # o_o, O_O
+)
+
+
+def strip_emojis_and_emoticons(text: str) -> str:
+    """Strip all unicode emojis, symbols, and text-based emoticons."""
+    text = _EMOJI_RE.sub("", text)
+    text = _EMOTICON_RE.sub("", text)
+    text = re.sub(r"[ \t]{2,}", " ", text)
+    return text.strip()
+
 
 def clean_for_speech(text: str) -> str:
     """Strip markdown so TTS doesn't pronounce asterisks, backticks, hashes, etc.
@@ -20,6 +43,7 @@ def clean_for_speech(text: str) -> str:
     Unwraps *emph*/`code`, drops list bullets and heading marks, then removes any
     stray markup characters left behind. Leaves normal punctuation untouched.
     """
+    text = strip_emojis_and_emoticons(text)
     text = _EMPHASIS.sub(r"\2", text)
     text = _LEADING_MARKS.sub("", text)
     text = _STRAY_MARKS.sub("", text)

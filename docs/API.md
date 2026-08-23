@@ -15,7 +15,7 @@ Base URL: `http://localhost:2000` (nginx) or `http://127.0.0.1:2324` (backend di
 ```
 
 ### `GET /api/personas`
-The conversational modes for the picker. `{ "personas": [{ "id", "name", "tagline" }] }` — Clarity first.
+The conversational modes for the picker. `{ "personas": [{ "id", "name", "tagline" }] }` — Medusa.
 
 ### `GET /api/sessions`
 `{ "sessions": [{ "id", "title", "persona", "created_at", "message_count" }] }`
@@ -34,7 +34,7 @@ One connection = one live conversation. Binary frames are audio; text frames are
 | Message | Meaning |
 |---|---|
 | binary frame | 16 kHz mono **int16 PCM** mic audio, streamed continuously |
-| `{"type":"set_session","session_id":"<id>"\|null,"persona":"<id>"\|null}` | resume a session (null/unknown ⇒ create new under `persona`, default `clarity`). Resuming keeps the session's stored persona. |
+| `{"type":"set_session","session_id":"<id>"\|null,"persona":"<id>"\|null}` | resume a session (null/unknown ⇒ create new under `persona`, default `medusa`). Resuming keeps the session's stored persona. |
 | `{"type":"user_text","text":"..."}` | typed turn (skips STT, same pipeline) |
 | `{"type":"mute","muted":true\|false}` | muted ⇒ server discards mic audio |
 
