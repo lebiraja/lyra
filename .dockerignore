@@ -17,3 +17,9 @@ docs
 .idea
 .claude
 .playwright-mcp
+
+# Third-party reference clones and personal eval data — never in images
+reference
+eval
+logs
+data

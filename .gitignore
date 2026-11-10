@@ -30,3 +30,10 @@ data/
 .DS_Store
 *.swp
 .obsidian/
+
+# Third-party reference clones (see reference/README.md) — not ours, not committed
+reference/*
+!reference/README.md
+
+# Personal eval recordings / webcam stills (docs/v4/roadmap.md) — private
+eval/

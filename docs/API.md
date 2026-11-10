@@ -10,7 +10,8 @@ Base URL: `http://localhost:2000` (nginx) or `http://127.0.0.1:2324` (backend di
   "status": "healthy" | "degraded",
   "engines_loaded": true,
   "llm_reachable": true,
-  "latency_ms": { "stt_ms": 280.1, "llm_ttft_ms": 310.5, "first_audio_ms": 1450.2 }
+  "semantic_memory_reachable": null,
+  "latency_ms": { "stt_ms": 280.1, "ser_ms": 300.2, "llm_ttft_ms": 310.5, "first_audio_ms": 1450.2 }
 }
 ```
 
@@ -22,6 +23,12 @@ The conversational modes for the picker. `{ "personas": [{ "id", "name", "taglin
 
 ### `GET /api/sessions/{id}/messages`
 `{ "session_id", "messages": [{ "role": "user"|"assistant", "content", "created_at" }] }` — 404 if unknown.
+
+### `GET /api/sessions/{id}/events`
+`{ "session_id", "events": [...] }`: the raw conversation event log (state transitions, transcripts, deltas, emotion, memory saves). 404 if unknown.
+
+### `GET /api/memory/artifacts`
+`{ "artifacts": [...] }`: up to 100 extracted memory artifacts (facts/preferences/goals) across sessions.
 
 ### `DELETE /api/sessions/{id}`
 `{ "deleted": "<id>" }` — 404 if unknown.
@@ -37,6 +44,7 @@ One connection = one live conversation. Binary frames are audio; text frames are
 | `{"type":"set_session","session_id":"<id>"\|null,"persona":"<id>"\|null}` | resume a session (null/unknown ⇒ create new under `persona`, default `medusa`). Resuming keeps the session's stored persona. |
 | `{"type":"user_text","text":"..."}` | typed turn (skips STT, same pipeline) |
 | `{"type":"mute","muted":true\|false}` | muted ⇒ server discards mic audio |
+| `{"type":"video_frame","data":"<base64 JPEG>"}` | camera frame (~200 ms interval, 320×240) for facial emotion; dropped if the FER queue is full |
 
 ### Server → client
 | Message | Meaning |
@@ -45,9 +53,10 @@ One connection = one live conversation. Binary frames are audio; text frames are
 | `{"type":"state","state"}` | `listening` / `transcribing` / `generating` / `speaking` |
 | `{"type":"user_transcript","text","language","language_probability"}` | what STT heard + detected language (`en`/`ta`/…) and its probability |
 | `{"type":"assistant_delta","text"}` | streaming token(s) |
-| `{"type":"assistant_greeting","text"}` | streaming token(s) of a proactive opening (Friend persona, no user turn) |
+| `{"type":"assistant_greeting","text"}` | streaming token(s) of Medusa's proactive opening (fresh session, no user turn) |
 | `{"type":"assistant_done","text"}` | full reply text |
 | `{"type":"interrupted"}` | barge-in happened — flush your playback queue |
+| `{"type":"emotion","label","confidence","source"}` | fused user emotion for this turn (sent only when non-neutral and above threshold); `source` = `face`/`voice`/`fused`/`voice_only` |
 | `{"type":"error","message"}` | turn failed; pipeline returns to listening |
 | binary frame | 24 kHz mono **int16 PCM** TTS audio chunk (one per sentence) |
 
