@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# One-time model download for ClarityMentor v3. Everything lands in ./models/.
-# After this completes, the app needs zero network access (except Whisper's first-run auto-download).
+# One-time model download for Medusa (v3). Everything lands in ./models/.
+# After this completes, the app only needs the network once more: the backend's first start
+# auto-downloads Whisper + the emotion models (see the NOTE at the end).
+# (The old step 5 ran `transformers` on the host Python, which fails without it installed.)
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -31,24 +33,11 @@ echo "==> [4/4] VAD: Silero v5 ONNX (~2 MB)"
 [ -f models/silero/silero_vad.onnx ] || curl -L --fail -o models/silero/silero_vad.onnx \
     "https://raw.githubusercontent.com/snakers4/silero-vad/master/src/silero_vad/data/silero_vad.onnx"
 
-echo "==> [5/5] Emotion Models: wav2vec2-base + HSEmotion ONNX (~380 MB)"
-python3 -c '
-import os
-from transformers import AutoFeatureExtractor, AutoModelForAudioClassification
-print("Downloading superb/wav2vec2-base-superb-er...")
-AutoFeatureExtractor.from_pretrained("superb/wav2vec2-base-superb-er")
-AutoModelForAudioClassification.from_pretrained("superb/wav2vec2-base-superb-er")
-
-try:
-    from hsemotion_onnx import HSEmotionRecognizer
-    print("Downloading HSEmotion enet_b0_8_best_afew...")
-    HSEmotionRecognizer(model_name="enet_b0_8_best_afew")
-except Exception as e:
-    print(f"Could not warm up HSEmotion: {e}")
-'
-
 echo
-echo "NOTE: STT (Whisper large-v3-turbo) auto-downloads on first run via HuggingFace cache (~1.5 GB)."
+echo "NOTE: On first backend start these auto-download (HF ones into the whisper-cache volume):"
+echo "  - STT: Whisper large-v3-turbo (~1.5 GB)"
+echo "  - SER: superb/wav2vec2-base-superb-er (~380 MB)"
+echo "  - FER: HSEmotion enet_b0_8_best_afew ONNX (fetched by hsemotion-onnx when it loads)"
 echo
 echo "All models downloaded:"
 du -sh models/*
