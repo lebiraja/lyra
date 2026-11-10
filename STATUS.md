@@ -4,6 +4,18 @@ Activity log, newest first. One entry per feature, fix, refactor, config change,
 
 ---
 
+## 2026-11-11 — docs: v4 master plan + checklist (all decisions made)
+
+**Type:** decision / plan
+**What:** Lebi answered 12 product questions (D-11…D-22). I made and recorded the technical decisions (D-23…D-40).
+- **Plan:** `docs/v4/plan.md` covers the model bill of materials (Gemma 4 E4B hears and sees, Indic-Mio voice, Smart Turn + Tamil, emotion2vec+, MediaPipe, EmbeddingGemma, SQLite + sqlite-vec + FTS5 + Neo4j projection), the full flow, the turn state machine, prompts, protocol v4, schema, a 28-row error matrix, tests, gates G0–G9 and phases P0–P9.
+- **Checklist:** `docs/v4/checklist.md`.
+
+**Next:** P0 hygiene fixes, then P1 eval kit (voice import from `~/Projects/voice-auth`).
+**Blockers:** B-2 narrowed to ~15 min transcript correction + turn spot-check; see `BLOCKERS.md`.
+
+---
+
 ## 2026-11-10 23:30 IST — chore: codebase cleanup + reference repos studied
 
 **Type:** refactor (no behaviour change) + bug fix + research

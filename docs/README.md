@@ -11,6 +11,8 @@
 ## v4 proposal: perceptive companion (not implemented)
 | Doc | What |
 |---|---|
+| **[v4/plan.md](v4/plan.md)** | **Master plan (approved): every model, decision, full flow, error matrix, protocol, schema, gates, phases. This one wins.** |
+| **[v4/checklist.md](v4/checklist.md)** | **Executable checklist per phase (P0–P9), gates, Lebi tasks** |
 | [v4/architecture.md](v4/architecture.md) | Target design: two-lane perception, multimodal brain, single voice, memory v4, latency and VRAM budgets |
 | [v4/roadmap.md](v4/roadmap.md) | Phases 0–6 and benchmark gates G0–G7 |
 | [v4/ui-redesign.md](v4/ui-redesign.md) | "Marginalia" UI direction, screens, tech plan |

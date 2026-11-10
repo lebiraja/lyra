@@ -1,5 +1,7 @@
 # Medusa v4: Perceptive Companion Architecture (proposal)
 
+> **Superseded for decisions by [plan.md](plan.md) (2026-11-11).** Kept as design rationale. Where they differ, plan.md wins (e.g. the brain is Gemma 4 E4B with native audio, the voice is Indic-Mio, and Neo4j is on by default as a projection).
+
 **Status:** PROPOSAL, nothing implemented · **Date:** 2026-11-10 · **Supersedes nothing yet:** `docs/architecture.md` still describes the running v3
 **Inputs:** [current-state audit](../research/2026-11-current-state-audit.md) · [model landscape](../research/2026-11-model-landscape.md) · [similar projects](../research/2026-11-similar-projects.md) · **Phasing:** [roadmap](roadmap.md) · **UI:** [ui-redesign](ui-redesign.md)
 

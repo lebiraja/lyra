@@ -1,5 +1,7 @@
 # Medusa v4: Roadmap and Benchmark Gates
 
+> **Superseded by [plan.md](plan.md) §20–21 and [checklist.md](checklist.md) (2026-11-11).** The phases are renumbered P0–P9, and the gate thresholds were finalised there.
+
 **Status:** PROPOSAL · **Date:** 2026-11-10 · Architecture: [architecture.md](architecture.md) · Models: [landscape](../research/2026-11-model-landscape.md)
 
 The rule: **no model enters the main pipeline until it passes its gate on this laptop with Lebi's data.** Each gate yields a short report in `docs/benchmarks/` (numbers plus a decision) and an entry in `DECISIONS.md`. Heavy runs go one at a time, under `nice` (per CLAUDE.md ops habits).

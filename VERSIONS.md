@@ -8,9 +8,12 @@ SemVer per part. Bump every part you change. Unreleased changes are logged under
 | frontend | 2.0.0 | `frontend/package.json` |
 | WS protocol | 3 (implicit) | `docs/API.md`, `frontend/src/types/protocol.ts` |
 | persona (medusa) | 1.1.0 | `config/personas/medusa.yaml` (human-touch prompt, July 2026) |
-| docs | 1.2.0 | this file |
+| docs | 1.3.0 | this file |
 
 ## Unreleased
+
+### docs 1.2.0 → 1.3.0 (2026-11-11)
+- Added `docs/v4/plan.md` (master plan) and `docs/v4/checklist.md`. Appended D-11…D-40 to DECISIONS. Updated BLOCKERS. Marked the v4 architecture and roadmap docs as superseded for decisions.
 
 ### backend 3.0.0 → 3.0.1 (2026-11-10) — cleanup, no behaviour change
 - `print()` → `logger` in the pipeline failure paths and startup (`backend/main.py`, `backend/core/pipeline.py`), so they reach `medusa.log`.
