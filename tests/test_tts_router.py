@@ -50,13 +50,13 @@ def test_routes_tamil_to_piper(router, fake_ta):
 
 
 def test_unknown_language_falls_back_to_english(router, fake_en):
-    pcm = router.synthesize("Bonjour", language="fr")
+    router.synthesize("Bonjour", language="fr")
     assert fake_en.last_text == "Bonjour"
 
 
 def test_tamil_without_piper_falls_back_to_english(fake_en):
     router = TTSRouter(kokoro=fake_en, piper_tamil=None)
-    pcm = router.synthesize("வணக்கம்", language="ta")
+    router.synthesize("வணக்கம்", language="ta")
     assert fake_en.last_text == "வணக்கம்"
 
 

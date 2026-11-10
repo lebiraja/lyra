@@ -3,7 +3,6 @@
 import asyncio
 from pathlib import Path
 
-import numpy as np
 import pytest
 
 from backend.core.pipeline import ConversationPipeline, LatencyStats
@@ -83,10 +82,12 @@ from backend.core.personas import Persona  # noqa: E402
 class FakePersonaRegistry:
     def __init__(self, personas: dict[str, Persona] | None = None):
         self._personas = personas or {
-            "clarity": Persona(
-                id="clarity", name="Clarity", tagline="mentor", voice="af_heart",
+            # Non-proactive, memory-less persona: the default here so plain
+            # pipeline tests don't trigger Medusa's greeting or summaries.
+            "plain": Persona(
+                id="plain", name="Plain", tagline="test persona", voice="af_heart",
                 proactive=False, cross_session_memory=False,
-                system_prompt="You are a test mentor.",
+                system_prompt="You are a test assistant.",
             ),
             "medusa": Persona(
                 id="medusa", name="Medusa", tagline="the friend to share all the things", voice="af_heart",
@@ -96,7 +97,7 @@ class FakePersonaRegistry:
         }
 
     def get(self, persona_id):
-        return self._personas.get(persona_id or "", self._personas["clarity"])
+        return self._personas.get(persona_id or "", self._personas["plain"])
 
     def exists(self, persona_id):
         return persona_id in self._personas

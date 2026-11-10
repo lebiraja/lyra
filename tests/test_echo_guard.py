@@ -3,7 +3,6 @@
 import time
 
 import numpy as np
-import pytest
 
 from tests.conftest import FakeLLM, FakeTurnDetector
 

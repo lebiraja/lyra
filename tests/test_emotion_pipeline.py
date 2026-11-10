@@ -1,11 +1,8 @@
 """Pipeline integration tests with emotion detection (parallel forks, fusion, prompt injection)."""
 
-import asyncio
 import numpy as np
-import pytest
 
 from backend.core.emotion import EmotionBuffer, EmotionState
-from tests.conftest import FakeLLM, FakeSTT, FakeTurnDetector
 
 
 class FakeSER:
@@ -69,7 +66,7 @@ async def test_pipeline_runs_ser_parallel_and_injects_prompt(make_pipeline, coll
     windowed = await pipeline._windowed_messages()
     assert len(windowed) == 4  # System prompt, Emotion Context system prompt, User, Assistant (greeting/none)
     assert windowed[0]["role"] == "system"
-    assert "You are a test mentor" in windowed[0]["content"]
+    assert "You are a test assistant" in windowed[0]["content"]
 
     assert windowed[1]["role"] == "system"
     assert "[Current User State]" in windowed[1]["content"]

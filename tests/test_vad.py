@@ -1,7 +1,6 @@
 """TurnDetector endpoint logic, driven by a scripted VAD (no model needed)."""
 
 import numpy as np
-import pytest
 
 from backend.core.vad import FRAME_SAMPLES, TurnDetector
 

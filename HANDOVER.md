@@ -32,3 +32,4 @@ Read this first. Newest entry on top.
 - **`reference/` is third-party code:** read only, never run it, never copy without a licence check, never commit it (only its README is tracked).
 - **Don't rename `clarity-*`** compose names/volumes casually. They are tied to the Docker Hub images, and renaming orphans the `clarity-data` volume on machines that have data.
 - **A `.env` file must exist** for compose (`env_file: .env`). `cp .env.example .env`.
+- **Run `make models` before any `docker compose run/up`.** Otherwise Docker creates the bind-mounted `models/kokoro`, `models/piper-tamil` and `logs/` as **root**, and the host-side download can't write into them. Fix: `docker run --rm -v "$PWD":/w alpine chown 1000:1000 /w/logs /w/models/*`.
