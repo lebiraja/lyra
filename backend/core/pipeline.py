@@ -174,7 +174,7 @@ class ConversationPipeline:
         """Resume or start a conversation under a chosen persona.
 
         Resuming an existing session keeps its stored persona (locked per
-        conversation). A new session adopts `persona_id`. Friend-style personas
+        conversation). A new session adopts `persona_id`. Proactive personas (Medusa)
         load their cross-session memory and open with a spoken greeting.
         """
         # Summarize the conversation we're leaving (memory personas only).
@@ -212,7 +212,7 @@ class ConversationPipeline:
 
         await self._load_prompt()
 
-        # Proactive personas (Friend) greet on entering a fresh conversation.
+        # Proactive personas (Medusa) greet on entering a fresh conversation.
         is_empty = not await self.db.get_messages(self.session_id)
         if self.persona.proactive and is_empty:
             self._start_greeting()
@@ -424,14 +424,14 @@ class ConversationPipeline:
             raise
         except Exception as e:
             await self.send_json({"type": "error", "message": "Something went wrong, try again."})
-            print(f"[pipeline] turn failed: {type(e).__name__}: {e}")
+            logger.exception("turn failed: %s", type(e).__name__)
             await self._record_event("error", metadata={"kind": type(e).__name__})
             await self._emit_state("listening")
         finally:
             self._end_busy()
 
     async def _run_greeting(self) -> None:
-        """Proactive opening for personas like Friend — speak first, no user turn."""
+        """Proactive opening (Medusa): speak first, no user turn."""
         assert self.session_id is not None
         greeting = ""
         partial: list[str] = []
@@ -475,7 +475,7 @@ class ConversationPipeline:
                 await self._store_message("assistant", said)
             raise
         except Exception as e:
-            print(f"[pipeline] greeting failed: {type(e).__name__}: {e}")
+            logger.exception("greeting failed: %s", type(e).__name__)
             await self._record_event("error", metadata={"kind": type(e).__name__})
             await self._emit_state("listening")
         finally:
@@ -578,7 +578,7 @@ class ConversationPipeline:
                     metadata={"persona_id": self.persona.id},
                 )
         except Exception as e:
-            print(f"[pipeline] memory summary failed: {type(e).__name__}: {e}")
+            logger.exception("memory summary failed: %s", type(e).__name__)
 
     async def _windowed_messages(self, query: str | None = None) -> list[dict[str, str]]:
         """Assemble current-generation prompt context through an explicit seam."""

@@ -3,7 +3,6 @@
 import asyncio
 
 import numpy as np
-import pytest
 
 from tests.conftest import FakeLLM, FakeSTT
 

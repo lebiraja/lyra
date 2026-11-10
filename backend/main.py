@@ -40,6 +40,8 @@ def setup_logging() -> None:
         l.propagate = True
 
 setup_logging()
+logger = logging.getLogger("backend")
+
 from backend.core.llm import LLMClient
 from backend.core.personas import PersonaRegistry
 from backend.core.pipeline import LatencyStats
@@ -59,8 +61,6 @@ async def lifespan(app: FastAPI):
 
     app.state.store = Database(settings.DB_PATH)
     await app.state.store.connect()
-    # Transitional alias while the API and tests still reference `app.state.db`.
-    app.state.db = app.state.store
     app.state.graph_store = await create_semantic_memory_store()
     app.state.memory_extractor = ShadowMemoryExtractor(
         app.state.store,
@@ -96,7 +96,7 @@ async def lifespan(app: FastAPI):
         temperature=settings.LLM_TEMPERATURE,
     )
 
-    print("Loading STT (Whisper %s, %s, %s)..." % (settings.STT_MODEL, settings.STT_DEVICE, settings.STT_COMPUTE_TYPE))
+    logger.info("Loading STT (Whisper %s, %s, %s)...", settings.STT_MODEL, settings.STT_DEVICE, settings.STT_COMPUTE_TYPE)
     from backend.core.stt import WhisperSTT
 
     app.state.stt = WhisperSTT(
@@ -105,7 +105,7 @@ async def lifespan(app: FastAPI):
         compute_type=settings.STT_COMPUTE_TYPE,
     )
 
-    print("Loading TTS — English (Kokoro-82M, voice=%s)..." % settings.TTS_VOICE)
+    logger.info("Loading TTS — English (Kokoro-82M, voice=%s)...", settings.TTS_VOICE)
     from backend.core.tts import KokoroTTS, PiperTTS, TTSRouter
 
     kokoro = KokoroTTS(
@@ -114,10 +114,10 @@ async def lifespan(app: FastAPI):
 
     piper_tamil = None
     if settings.PIPER_TAMIL_ENABLED and settings.piper_tamil_model.exists():
-        print("Loading TTS — Tamil (Piper)...")
+        logger.info("Loading TTS — Tamil (Piper)...")
         piper_tamil = PiperTTS(settings.piper_tamil_model, settings.piper_tamil_config)
     elif settings.PIPER_TAMIL_ENABLED:
-        print("WARNING: Piper Tamil model not found at %s — Tamil TTS disabled" % settings.piper_tamil_model)
+        logger.warning("Piper Tamil model not found at %s — Tamil TTS disabled", settings.piper_tamil_model)
 
     app.state.tts = TTSRouter(kokoro=kokoro, piper_tamil=piper_tamil)
 
@@ -133,22 +133,22 @@ async def lifespan(app: FastAPI):
         try:
             from backend.core.emotion import SpeechEmotionRecognizer
 
-            print("Loading SER (%s, CPU)..." % settings.EMOTION_SER_MODEL)
+            logger.info("Loading SER (%s, CPU)...", settings.EMOTION_SER_MODEL)
             app.state.ser = SpeechEmotionRecognizer(model_id=settings.EMOTION_SER_MODEL)
         except Exception as e:
-            print("WARNING: SER load failed (%s) — voice emotion disabled" % e)
+            logger.warning("SER load failed (%s) — voice emotion disabled", e)
 
         if settings.EMOTION_FER_ENABLED:
             try:
                 from backend.core.emotion import FacialEmotionRecognizer
 
-                print("Loading FER (EmotiEffNet-B0 ONNX, CPU)...")
+                logger.info("Loading FER (EmotiEffNet-B0 ONNX, CPU)...")
                 app.state.fer = FacialEmotionRecognizer()
             except Exception as e:
-                print("WARNING: FER load failed (%s) — facial emotion disabled" % e)
+                logger.warning("FER load failed (%s) — facial emotion disabled", e)
 
     app.state.ready = True
-    print("Backend ready.")
+    logger.info("Backend ready.")
 
     yield
 
@@ -158,7 +158,7 @@ async def lifespan(app: FastAPI):
     await app.state.store.close()
 
 
-app = FastAPI(title="Medusa", version="3.0.0", lifespan=lifespan)
+app = FastAPI(title="Medusa", version="3.0.1", lifespan=lifespan)
 app.include_router(rest.router, prefix="/api")
 app.include_router(ws.router)
 

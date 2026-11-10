@@ -62,7 +62,7 @@ CREATE INDEX IF NOT EXISTS idx_memory_artifacts_key
 CREATE INDEX IF NOT EXISTS idx_memory_artifacts_status
     ON memory_artifacts(status, valid_to);
 
--- Rolling per-conversation summaries for personas with cross-session memory (Friend).
+-- Rolling per-conversation summaries for personas with cross-session memory (Medusa).
 CREATE TABLE IF NOT EXISTS memories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     persona TEXT NOT NULL,
@@ -394,7 +394,7 @@ class Database:
         )
         await self.db.commit()
 
-    # ---- cross-session memory (Friend persona) ----
+    # ---- cross-session memory (Medusa) ----
 
     async def save_memory(self, persona: str, session_id: str | None, summary: str) -> None:
         await self.db.execute(

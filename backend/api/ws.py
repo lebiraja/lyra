@@ -9,14 +9,13 @@ Protocol (client -> server):
 
 Protocol (server -> client):
   binary frames            24 kHz int16 mono PCM TTS audio
-  {"type":"session","session_id": str}
+  {"type":"session","session_id": str, "persona": str}
   {"type":"state","state":"listening"|"transcribing"|"generating"|"speaking"}
   {"type":"user_transcript","text": str, "language": str, "language_probability": float}
   {"type":"assistant_delta","text": str}
+  {"type":"assistant_greeting","text": str}   # proactive opening (Medusa)
   {"type":"assistant_done","text": str}
   {"type":"interrupted"}
-  {"type":"assistant_greeting","text": str}   # proactive opening (Friend persona)
-  {"type":"session","session_id": str, "persona": str}
   {"type":"emotion","label": str, "confidence": float, "source": str}
   {"type":"error","message": str}
 """

@@ -5,3 +5,11 @@ markers = [
     "smoke: tests that load the real ONNX models (need `make models` first)",
 ]
 addopts = "-m 'not smoke'"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+
+[tool.ruff.lint]
+# Pyflakes only for now (unused imports/vars, undefined names). Widen deliberately.
+select = ["F"]

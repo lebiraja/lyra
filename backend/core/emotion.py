@@ -10,8 +10,7 @@ import base64
 import io
 import logging
 from collections import deque
-from dataclasses import dataclass, field
-from typing import Sequence
+from dataclasses import dataclass
 
 import numpy as np
 

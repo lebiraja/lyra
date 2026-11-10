@@ -27,7 +27,7 @@ class Persona:
     system_prompt: str
 
     def render_prompt(self, memory: str | None = None) -> str:
-        """Fill the {memory} placeholder (Friend persona); no-op for others."""
+        """Fill the {memory} placeholder (memory personas); no-op for others."""
         if MEMORY_PLACEHOLDER not in self.system_prompt:
             return self.system_prompt.strip()
         text = memory.strip() if memory and memory.strip() else NO_MEMORY_TEXT

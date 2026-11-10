@@ -1,6 +1,5 @@
 """Unit tests for backend.core.emotion — types, fusion, buffer, context builder."""
 
-import numpy as np
 import pytest
 
 from backend.core.emotion import (

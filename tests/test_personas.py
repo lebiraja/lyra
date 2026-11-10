@@ -2,11 +2,9 @@
 
 import asyncio
 
-import numpy as np
-import pytest
 
 from backend.core.personas import PersonaRegistry
-from tests.conftest import FakeLLM, FakePersonaRegistry
+from tests.conftest import FakeLLM
 
 
 # ---- registry (loads real config/personas/*.yaml) ----
@@ -61,7 +59,7 @@ async def test_resumed_session_keeps_stored_persona(make_pipeline, db):
 
     # Resume asking for a different persona — stored one wins.
     other = make_pipeline()
-    resumed = await other.set_session(sid, "clarity")
+    resumed = await other.set_session(sid, "plain")
     assert resumed == sid
     assert other.persona.id == "medusa"
 
