@@ -11,6 +11,7 @@ Read this first. Newest entry on top.
 **This session:** research and docs, then a no-behaviour-change cleanup (backend 3.0.1) and a `make models` fix. 18 reference repos were cloned into `reference/` (gitignored). Lebi's goal for v4 is a companion that **sees** (camera: emotion, movement, activity), **hears**, **remembers** (graph memory) and replies **as fast as possible**, edge-only, natively EN + TA + Tanglish, with a fully new UI.
 
 **Read in this order:**
+0. **`docs/v4/plan.md` + `docs/v4/checklist.md`: the approved master plan (2026-11-11). Everything below is background.**
 1. `docs/research/2026-11-current-state-audit.md`: what's broken or slow today
 2. `docs/v4/architecture.md`: the proposed design (two-lane perception, one multimodal brain, single voice, idle-time memory)
 3. `docs/v4/roadmap.md`: phases and benchmark gates G0–G7
@@ -18,7 +19,7 @@ Read this first. Newest entry on top.
 5. `docs/research/2026-11-model-landscape.md` and `…-similar-projects.md`: evidence and sources
 6. `docs/research/2026-11-reference-repos.md`: what reading 18 cloned repos in `reference/` changed. **GLaDOS is the closest blueprint.**
 
-**Next step:** Phase 0 (roadmap §2). It contains two real bugs (Tamil-blind memory, duplicate summary injection) plus perf fixes. Use the issue → PR workflow. Bugs need a failing-first regression test.
+**Next step:** P0 in `docs/v4/checklist.md`. It contains two real bugs (Tamil-blind memory, duplicate summary injection) plus perf fixes. Use the issue → PR workflow. Bugs need a failing-first regression test.
 
 ### Rules that bite
 - **6 GB VRAM is the hard limit.** A 4B multimodal brain, a 3B LLM-TTS and GPU Whisper together don't fit (architecture §4). Don't add a resident GPU model without a VRAM line item and a G0 measurement.

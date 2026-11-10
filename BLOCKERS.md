@@ -4,7 +4,7 @@ What is waiting on a person. Add an item the moment something blocks and remove 
 
 | # | Blocked item | Waiting on | What unblocks it | Since |
 |---|---|---|---|---|
-| B-1 | D-1 VRAM profile for native Tamil voice (Phase 3) | **Lebi** (decision) | G0–G3 benchmark reports in `docs/benchmarks/` | 2026-11-10 |
-| B-2 | Eval kit audio and webcam set (gates G1, G2, G3, G5, G6) | **Lebi** (record ~30 min EN/TA/Tanglish plus 60 webcam stills) | Recordings in `eval/` (gitignored) | 2026-11-10 |
-| B-3 | Indic-Transcribe / Indic-Speak weights download | **Lebi** (accept the gated licence on Hugging Face with his own account, then provide `HF_TOKEN` in `.env`) | Licence accepted | 2026-11-10 |
-| B-4 | Memory v4 schema migration (Phase 4) | **Lebi** (approval; migrations need sign-off) | Review of the schema PR | not started |
+| B-1 | D-1 VRAM profile: Profile A chosen (D-23/D-38), needs confirmation | **Lebi** (sign-off) | G0 report showing Profile A ≤ 5.6 GB | 2026-11-10 |
+| B-2 | Eval reference transcripts (G2) and turn-end labels (G5) | **Lebi** (correct ~15 min of transcripts in the review tool, ~1–1.5 h; spot-check 100 turn clips, ~15 min). Voice comes from `~/Projects/voice-auth` and images from open datasets (D-22) | `eval/audio/refs.csv` + turn labels | 2026-11-10 (narrowed 2026-11-11) |
+| B-3 | Gated weights, needed only if a fallback is triggered (Indic-Speak / Indic-Transcribe) | **Lebi** (accept the HF licence, put `HF_TOKEN` in `.env`) | Licence accepted | 2026-11-10 (now conditional) |
+| B-4 | Memory v4 schema migration (Phase **P6**) | **Lebi** (approval; migrations need sign-off) | Review of the migration PR | not started |
