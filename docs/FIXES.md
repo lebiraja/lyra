@@ -2,6 +2,13 @@
 
 Running log of significant fixes and the reasoning behind them.
 
+## 2026-11-10 — `make models` failed at its last step on a clean host
+
+- **Symptom:** `make models` downloaded the LLM, Kokoro, Piper and Silero, then exited non-zero at step "[5/5] Emotion Models" with `ModuleNotFoundError: No module named 'transformers'` (reproduced: `python3 -c "import transformers"` fails on this CachyOS host).
+- **Root cause:** `scripts/download_models.sh` ran an inline `python3 -c` that imported `transformers` and `hsemotion_onnx` **on the host**. Python ML deps only exist inside the backend image (by convention, never installed globally). Even when it worked, it warmed the *host's* `~/.cache/huggingface`, which the container never sees (the container uses the `whisper-cache` volume).
+- **Fix:** removed the host-Python step (`scripts/download_models.sh`, formerly lines 39–53). The SER/FER weights already download on first backend start inside the container. The closing NOTE now says so.
+- **Regression test:** `tests/test_scripts.py::test_download_script_does_not_run_host_python` fails on the old script (it flags `python3 -c '` and `from transformers import …`) and passes on the new one. `make test` now bind-mounts `scripts/` so the test can see it.
+
 ## 2026-07-14 — Medusa Single-Persona & Local Time-Series Logging
 
 Consolidated conversational modes and added local time-series logging to satisfy simplicity and privacy requirements:
