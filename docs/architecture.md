@@ -72,16 +72,32 @@ The persona is **locked** as Medusa for all conversations (stored in the `sessio
 - *Proactive*: on a fresh Medusa conversation the pipeline generates and speaks a greeting first (`assistant_greeting` event) — the user doesn't have to start.
 - *Cross-session memory*: when a Medusa conversation ends (disconnect, or switching away), the LLM writes a 1–3 sentence summary into the `memories` table. The next Medusa conversation injects those summaries into the `{memory}` slot of its prompt, so Medusa "remembers" across sessions. Summaries are bounded (most-recent N) so they never blow the context budget. The prompt forbids inventing history not in memory.
 
+## Emotion (CPU only, `backend/core/emotion.py`)
+
+- **SER (voice):** `superb/wav2vec2-base-superb-er` runs in a thread executor **in parallel with STT** on utterances ≥ `EMOTION_SER_MIN_AUDIO_S`.
+- **FER (face):** the browser sends a 320×240 JPEG `video_frame` every ~200 ms. `ws._fer_loop` runs EmotiEffNet-B0 (HSEmotion ONNX) on it and keeps a short `EmotionBuffer`. The queue holds at most 2 frames, and extra frames are dropped.
+- **Fusion:** `EmotionFusion` weights voice and face (`EMOTION_VOICE_WEIGHT` / `EMOTION_FACE_WEIGHT`) into one `EmotionState`. Above `EMOTION_SER_CONFIDENCE_THRESHOLD` it is sent as an `emotion` event and injected as a short behaviour fragment (`emotion_context()`) right after the system prompt.
+- Every component may be `None`: a model that fails to load disables only that channel.
+
+## Memory (`backend/memory/`)
+
+- **Contracts** in `interfaces.py` (store, extractor, retriever, assembler, consolidator, graph store). The pipeline depends only on these.
+- **Event log:** every state transition, transcript, delta and emotion is written to `conversation_events`.
+- **Extraction:** `ShadowMemoryExtractor` turns each turn into `memory_artifacts` (preferences, goals, employment) using heuristic English patterns.
+- **Retrieval:** `HybridMemoryRetriever` combines recent messages, artifacts ranked by lexical overlap, Medusa summaries and (if enabled) the Neo4j graph. `HybridContextAssembler` builds `[system, emotion, memory block, history]` within the token budget. When `MEMORY_HYBRID_RETRIEVAL=false` it falls back to `HistoryContextAssembler`.
+- **Graph:** Neo4j via `neo4j_store.py`, only with `SEMANTIC_MEMORY_ENABLED=true` and `docker compose --profile memory`.
+- Known limits (English-only extraction and tokeniser, cache-unfriendly prompt order) are tracked in `docs/research/2026-11-current-state-audit.md` §3.
+
 ## Local Time-Series Logging & Persistence
 
 - **Local Time-Series Logging**: Time-series log files are written locally to the `/app/logs/medusa.log` file, using python's `TimedRotatingFileHandler` to automatically rotate daily at midnight (keeping up to 30 past log files). This logs directory is mapped as a volume `./logs:/app/logs` in `docker-compose.yml` to persist logs locally on the host filesystem.
-- **SQLite Database**: SQLite database files are saved as `medusa.db` (`backend/db.py`) in the mapped data volume: contains `sessions` (with `persona`), `messages`, and `memories` (Medusa's rolling summaries) tables. The first user message becomes the session title. The frontend stores the active session id in `localStorage` and resumes it over the WS.
+- **SQLite Database**: SQLite database files are saved as `medusa.db` (`backend/db.py`) in the mapped data volume: contains `sessions` (with `persona`), `messages`, `conversation_events`, `memory_artifacts`, and `memories` (Medusa's rolling summaries) tables. The first user message becomes the session title. The frontend stores the active session id in `localStorage` and resumes it over the WS.
 
 ## Frontend (Quiet Room)
 
 Single screen (`frontend/src/App.tsx`). Three hooks own all the machinery:
 
-- `useMicStream` — AudioWorklet capturing 16 kHz int16 PCM (~64 ms chunks), `echoCancellation: true`
+- `useMicStream` — AudioWorklet capturing 16 kHz int16 PCM (~64 ms chunks), `echoCancellation: true`; also opens the camera and sends JPEG `video_frame`s for FER
 - `usePlayback` — Web Audio queue for gapless 24 kHz playback, instant flush on interrupt
 - `useConversation` — WS protocol client (Zod-validated), reconnect, session switching
 
