@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Fully local bilingual (English + Tamil) voice companion. The product name is inconsistent: the repo dir is `lyra`, the code/docker names say `clarity-*` / "ClarityMentor", and the single live persona is **Medusa**. Treat them as the same project. Nothing leaves the machine after the one-time model download.
+Fully local bilingual (English + Tamil) voice companion called **Lyra** (D-41). It was formerly named Medusa (persona) and Clarity (`clarity-*` containers). Code identifiers still say `medusa`/`clarity` until the P0 rename PR (`docs/v4/rename-lyra.md`). Nothing leaves the machine after the one-time model download.
 
 ## Commands
 
@@ -49,5 +49,8 @@ Three compose services: `llm` (llama.cpp serving Qwen3-4B GGUF, GPU), `backend` 
 - Logs go to `./logs/medusa.log` (daily rotation, 30 days), mounted into the container.
 - `docs/` holds `architecture.md`, `API.md`, `docker.md`, `FIXES.md`, plus planning docs. Some are stale: `docker.md` and `README.md` still describe the old 5-persona (Clarity/Engineer/Friend…) setup, `tests/conftest.py` `FakePersonaRegistry` still mocks a Clarity persona, and `docs/API.md` calls the greeting a "Friend persona" feature.
 - Read `HANDOVER.md` first (its "rules that bite" list matters). Activity goes in `STATUS.md`, decisions in `DECISIONS.md` (append-only), people-blocked items in `BLOCKERS.md`, versions in `VERSIONS.md`, and bug fixes in `docs/FIXES.md`. `docs/README.md` indexes every doc.
-- v4 (camera perception, multimodal brain, native Tamil voice, memory v4) is a **proposal** in `docs/v4/` backed by `docs/research/`. Model numbers there are mostly unverified, so run the benchmark gates in `docs/v4/roadmap.md` before adopting a model.
+- v4 is an **approved plan, not built yet**:
+  - `docs/v4/plan.md` (master plan), `checklist.md`, `user-model.md` (total-recall archive + user model), `persona.md` (human behaviours) and `rename-lyra.md`
+  - backed by `docs/research/`
+  - Model numbers are mostly unverified, so the gates in plan.md §20 decide before a model is adopted.
 - Do not commit `.env` or anything under `models/`, `data/`, `logs/`.

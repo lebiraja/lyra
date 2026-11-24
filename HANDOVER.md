@@ -4,6 +4,21 @@ Read this first. Newest entry on top.
 
 ---
 
+## 2026-11-24 IST
+
+**State:** docs only. The product is now **Lyra** (D-41); the code still says `medusa`/`clarity` until the P0 rename PR. Plan revised with D-41…D-48: total-recall archive, five-layer user model, human-likeness, one voice, audio archive opt-in.
+
+**Read in this order:** `docs/v4/plan.md` → `docs/v4/checklist.md` → `docs/v4/user-model.md` → `docs/v4/persona.md` → `docs/v4/rename-lyra.md`.
+
+**Next step:** P0 task 0, the rename (`refactor/rename-lyra`), then the hygiene fixes.
+
+### Rules that bite (new)
+- **Never rename a compose volume key without pinning `name:`** to the existing volume. Otherwise compose creates an empty one and every conversation is orphaned.
+- **The archive is the source of truth.** Facts, insights, the profile, vec/fts and Neo4j are projections. Never write user-visible knowledge that has no `source_turn_id`.
+- **One voice (D-47).** Don't add a second TTS voice to any default path.
+
+---
+
 ## 2026-11-10 22:36 IST
 
 **State:** v3 (Medusa, single persona) runs: EN/TA voice loop, emotion (SER+FER), hybrid memory scaffolding. Tree clean on `main` at `75eace7`, plus the new docs from this session (uncommitted).
@@ -31,6 +46,6 @@ Read this first. Newest entry on top.
 - **Personal eval data** (voice, webcam stills) stays out of git.
 - **Tests run in Docker:** `make test` (fake engines, no GPU needed, source bind-mounted). `make lint` runs ruff (pyflakes) and `tsc`.
 - **`reference/` is third-party code:** read only, never run it, never copy without a licence check, never commit it (only its README is tracked).
-- **Don't rename `clarity-*`** compose names/volumes casually. They are tied to the Docker Hub images, and renaming orphans the `clarity-data` volume on machines that have data.
+- **Compose names `clarity-*` become `lyra-*` in the P0 rename**, with the data volume pinned by `name:` (see `docs/v4/rename-lyra.md`). Don't rename them any other way: renaming orphans the `clarity-data` volume on machines that have data.
 - **A `.env` file must exist** for compose (`env_file: .env`). `cp .env.example .env`.
 - **Run `make models` before any `docker compose run/up`.** Otherwise Docker creates the bind-mounted `models/kokoro`, `models/piper-tamil` and `logs/` as **root**, and the host-side download can't write into them. Fix: `docker run --rm -v "$PWD":/w alpine chown 1000:1000 /w/logs /w/models/*`.

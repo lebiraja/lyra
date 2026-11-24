@@ -1,8 +1,11 @@
-# Medusa v4: Master Plan
+# Lyra v4: Master Plan
 
-**Status:** APPROVED PLAN (2026-11-10), implementation not started · **Owner:** Lebi · **Checklist:** [checklist.md](checklist.md)
+**Status:** APPROVED PLAN (2026-11-10, rev 2026-11-24: Lyra rename, total-recall archive, user model, human-likeness), implementation not started · **Owner:** Lebi · **Checklist:** [checklist.md](checklist.md)
 **Supersedes the decision content of** [architecture.md](architecture.md) and [roadmap.md](roadmap.md). Those stay as background and rationale; where they differ, **this file wins**.
-**Evidence:** [audit](../research/2026-11-current-state-audit.md) · [model landscape](../research/2026-11-model-landscape.md) · [similar projects](../research/2026-11-similar-projects.md) · [reference repos](../research/2026-11-reference-repos.md)
+**Companion specs (as binding as this file, for their area):** [user-model.md](user-model.md) (archive + user model, D-42/D-43/D-48) · [persona.md](persona.md) (Lyra's personality and human behaviours, D-44…D-47) · [rename-lyra.md](rename-lyra.md) (D-41) · [ui-redesign.md](ui-redesign.md)
+**Evidence:** [audit](../research/2026-11-current-state-audit.md) · [model landscape](../research/2026-11-model-landscape.md) · [similar projects](../research/2026-11-similar-projects.md) · [reference repos](../research/2026-11-reference-repos.md) · [human-likeness](../research/2026-11-human-likeness.md) · [user modelling](../research/2026-11-user-modelling-memory.md)
+
+> **Name:** the product, persona and voice are **Lyra** (D-41, formerly Medusa/Clarity). Code identifiers still say `medusa`/`clarity` until the P0 rename PR ([rename-lyra.md](rename-lyra.md)).
 
 Conventions:
 - `[est]` = estimate, to be replaced by a measured number at the named gate.
@@ -13,7 +16,7 @@ Conventions:
 
 ## 1. Goal, success criteria, non-goals
 
-**Goal:** Medusa is a friend who lives on Lebi's laptop. She **hears** (words and tone), **sees** (face, expression, posture, activity via the webcam), **remembers** (facts, events, routines, moods, editable by him), and **talks back fast** in English, Tamil or Tanglish, mirroring him, in **one consistent Indian female voice**. Everything runs on one RTX 4050 6 GB with no cloud at runtime.
+**Goal:** Lyra is a friend who lives on Lebi's laptop. She **hears** (words and tone), **sees** (face, expression, posture, activity via the webcam), **remembers everything** (every conversation verbatim, plus the facts, people, events, routines, moods and style she learns from them, all searchable and editable by him), **understands him** (a layered user model rebuilt nightly by reflection), and **talks back fast and like a person** in English, Tamil or Tanglish, mirroring him, in **one consistent Indian female voice**. Everything runs and is stored on one laptop (RTX 4050 6 GB) with no cloud at runtime.
 
 **v4.0 is done when all of these hold** (measured at gate G7, §20):
 
@@ -26,7 +29,9 @@ Conventions:
 | S5 | Vision | ≥ 80% correct activity/object answers on the vision set; never claims to see something absent |
 | S6 | Stability | 30-min soak: no OOM, no echo loop, no crash, VRAM ≤ 5.9 GB peak |
 | S7 | Degradation | killing `tts` or `llm` mid-session gives a spoken or visible degraded response within 3 s, and recovery happens without a reload |
-| S8 | Privacy | no pixel or audio bytes persisted, verified by DB/volume scan |
+| S8 | Privacy | no pixel bytes persisted anywhere; audio bytes only under `data/audio/` and only when `ARCHIVE_AUDIO=true` (D-48), verified by DB/volume scan |
+| S9 | Total recall | every user and assistant turn of the soak is in the archive with `turn_id`, language and signals; 20 archive-search probes hit@5 ≥ 0.85 (user-model.md §11) |
+| S10 | Feels like a friend | gate G10 passes (persona.md §8), including Lebi's weekly rating ≥ 4 for 3 weeks |
 
 **Non-goals for v4.0** (D-13, D-16, D-40): screen awareness, tools/MCP/web, wake word, desktop wrapper, multi-user, speaker verification, avatar, end-to-end speech-to-speech models, public distribution.
 
@@ -44,7 +49,7 @@ Full text is in `DECISIONS.md`.
 - personal use only
 - pure companion
 - open app, then hands-free
-- Medusa owns the GPU
+- Lyra owns the GPU
 - mirror the user's language
 - remember everything, editable
 - think ack ≤ 0.8 s and answer ≤ 5 s
@@ -70,11 +75,21 @@ Full text is in `DECISIONS.md`.
 - Tamil fonts and shadcn
 - v4.1 deferrals
 
+**Revision 2026-11-24 (D-41…D-48), from Lebi's "store everything, rename to Lyra, one voice, more human" request:**
+- **D-41** the name is Lyra everywhere ([rename-lyra.md](rename-lyra.md))
+- **D-42** total-recall archive: every turn verbatim, plus per-turn signals, stored locally forever; everything else is a rebuildable projection
+- **D-43** layered user model: archive → signals → knowledge → understanding (reflection: insights, routines, style, mood timeline, open loops) → profile
+- **D-44** human behaviours: mirrored length and energy, reactions, anti-repetition, clarifying, callbacks, visual backchannel (spoken only after G8)
+- **D-45** a consistent self: persona bible plus `lyra_self` memory; honest that she's an AI and never invents a human life
+- **D-46** relationship levels 0–4 plus healthy-companion rules
+- **D-47** one voice only: no backup voice by default; outage lines pre-rendered in Lyra's voice; text fallback
+- **D-48** raw audio archive is opt-in (`ARCHIVE_AUDIO=false` by default); never pixels
+
 ---
 
 ## 3. Hardware budget
 
-Measured host: RTX 4050 Laptop **6141 MiB** (sm_89), i7-13650HX **14C/20T**, **15 GiB RAM**, CachyOS. Per D-18 Medusa owns the GPU, and `make preflight` refuses to start if another process holds more than 300 MiB of VRAM (override: `FORCE=1`).
+Measured host: RTX 4050 Laptop **6141 MiB** (sm_89), i7-13650HX **14C/20T**, **15 GiB RAM**, CachyOS. Per D-18 Lyra owns the GPU, and `make preflight` refuses to start if another process holds more than 300 MiB of VRAM (override: `FORCE=1`).
 
 ### 3.1 VRAM, Profile A (primary)
 | Item | Est. | Notes |
@@ -110,7 +125,7 @@ Measured host: RTX 4050 Laptop **6141 MiB** (sm_89), i7-13650HX **14C/20T**, **1
 | Smart Turn | 4 (only during pauses) |
 | emotion2vec+ | 4 (per utterance) |
 | EmbeddingGemma | 4 (idle only) |
-| Kokoro/Piper fallback | 4 (only when degraded) |
+| Kokoro/Piper fallback | 4 (only when `TTS_FALLBACK=kokoro_piper` and degraded) |
 | llama.cpp CPU-side | default |
 
 Set via ORT/torch `intra_op` settings.
@@ -124,7 +139,7 @@ Set via ORT/torch `intra_op` settings.
 |---|---|---|---|---|---|---|
 | Brain (hear + see + talk) | `ggml-org/gemma-4-E4B-it-GGUF`: `gemma-4-E4B-it-Q4_0.gguf`, `mmproj-gemma-4-E4B-it-Q8_0.gguf` | llama.cpp `server-cuda`, pinned to a build verified with Gemma 4 audio (GLaDOS tested `687e7789`) | GPU | Apache-2.0 (Gemma 4) | G1, G2 | Profile B |
 | Voice | `SPRINGLab/Indic-Mio` (Qwen3-0.6B LM, `speech_offset 151669`, audio vocab 12800) + `Aratako/MioCodec-25Hz-24kHz` | PyTorch bf16 (torchao int8), new `tts` service | GPU | read the model card at P3 (personal use, D-15) | G3 | ① Svara-TTS-v1 Q4 GGUF via llama.cpp + SNAC; ② Indic-Speak (gated); ③ Kokoro EN + Piper TA (current) |
-| Voice identity | one female Indian reference clip (10–30 s) → MioCodec global embedding, saved as `config/voice/medusa.pt` | — | — | must be a clip Lebi is allowed to use (Indic-Mio samples or one he provides) | G3 listening | another Indic-Mio sample |
+| Voice identity | one female Indian reference clip (10–30 s) → MioCodec global embedding, saved as `config/voice/lyra.pt` | — | — | must be a clip Lebi is allowed to use (Indic-Mio samples or one he provides) | G3 listening | another Indic-Mio sample |
 | VAD | Silero v5 ONNX (`models/silero/silero_vad.onnx`) | onnxruntime | CPU | MIT | — | — |
 | Turn end (EN/other) | `pipecat-ai/smart-turn-v3` v3.2 CPU int8 ONNX | onnxruntime | CPU | BSD-2 | G5 | silence timeout 0.9 s (v3 behaviour) |
 | Turn end (TA/mix) | `santhosh-005/smart-turn-tamil` | onnxruntime | CPU | check card | G5 | own fine-tune with the smart-turn training script on our turn set |
@@ -132,7 +147,7 @@ Set via ORT/torch `intra_op` settings.
 | Face + body | MediaPipe `face_landmarker.task` (blendshapes) + `pose_landmarker_lite.task`, `@mediapipe/tasks-vision` (pinned) | WASM + WebGL in a Web Worker | client GPU | Apache-2.0 | G9 | face only, at 10 fps |
 | Scene / activity | the brain, on a keyframe (slot 1) | llama.cpp | GPU (shared) | — | G1 | SmolVLM2-256M captioner on CPU (Vocalis pattern) |
 | Embeddings | `google/embeddinggemma-300m` | sentence-transformers | CPU | Gemma terms | G4 | `Qwen/Qwen3-Embedding-0.6B` |
-| Degraded TTS | Kokoro-82M v1.0 ONNX `af_heart` + Piper `ta_IN-Valluvar-medium` (existing) | onnxruntime | CPU | Apache-2.0 / MIT | — | — |
+| Degraded TTS (**opt-in only**, D-47) | Kokoro-82M v1.0 ONNX `af_heart` + Piper `ta_IN-Valluvar-medium` (existing), used only with `TTS_FALLBACK=kokoro_piper`; the default fallback is Lyra's pre-rendered lines + on-screen text | onnxruntime | CPU | Apache-2.0 / MIT | — | — |
 
 ### 4.2 Profile B (adopted only if G1 or G2 fails for E4B)
 | Role | Artifact | Device |
@@ -354,7 +369,7 @@ States sent to the client: `listening | capturing | hearing | thinking | looking
 ### 7.1 Layout per slot-0 request (D-28, fixes audit §3.2–3.3)
 | # | Part | Changes when | Cached |
 |---|---|---|---|
-| 1 | persona system prompt (`config/personas/medusa.yaml` v2) | release | yes |
+| 1 | persona system prompt (`config/personas/lyra.yaml` v2) | release | yes |
 | 2 | person profile v{n} (≤ 300 tokens) | session start only | yes |
 | 3 | history (windowed, text only) | append-only in session | yes, incrementally |
 | 4 | `<now>` block (≤ 350 tokens) | every turn | no |
@@ -363,11 +378,13 @@ States sent to the client: `listening | capturing | hearing | thinking | looking
 - The window keeps the newest turns that fit `6144 − max_tokens − |1..2| − 350 − audio_tokens`. When old turns fall off, the cut is made at whole-turn boundaries. Dropped turns survive in memory, not in the prompt.
 - The `{memory}` slot is replaced by the profile. Rolling summaries are **no longer** injected separately; they feed the profile job instead.
 
-### 7.2 Persona v2 additions (to `medusa.yaml`)
+### 7.2 Persona v2 additions (to `lyra.yaml`)
 Keeps the v3 human-touch rules (1–3 short sentences, casual, no emojis or markdown, no therapy clichés, crisis override). Adds:
 - **Language:** reply in the language mix the user just used (`lang` in `<now>`). Write Tamil words in Tamil script and English words in Latin script. Never translate the user's words back at them.
 - **Control:** start with `[think]` only if the question needs real reasoning (a decision, planning, multi-step). Start with `[look]` only if answering needs the camera. Otherwise answer directly. Optionally put `[mood:happy|sad|surprised|calm]` first.
 - **Perception honesty:** use `<now>` only when it helps the moment. Never narrate it ("I can see you yawning"); weave it in like a friend would. Never claim to see or remember anything absent from `<now>` or the profile.
+- **Identity (D-45):** drops v3's "Not an AI" line. Lyra is honest that she's an AI living on his laptop, doesn't keep bringing it up, and never invents a human body or past. Her canon comes from `lyra_bible.yaml` + `lyra_self`.
+- **Human behaviours, relationship level and healthy-companion rules (D-44, D-46):** the full spec, prompt skeleton and runtime rules (`backend/core/style.py`) are in **[persona.md](persona.md)**. `<now>` gains `style_hint` (target length, Tanglish ratio), `level` and due `open_loops`.
 
 ### 7.3 `<now>` block (example)
 ```
@@ -375,7 +392,7 @@ Keeps the v3 human-touch rules (1–3 short sentences, casual, no emojis or mark
  sees(40s ago): at desk, dim room, code on screen, mug in hand
  face: tired (yawns 3/5min, PERCLOS 0.31) · voice: low energy (e2v: sad 0.41)
  body: slouched ~70 min, no stand-up since 22:30
- medusa_mood: P0.2 A0.1 D0.1
+ lyra_mood: P0.2 A0.1 D0.1
  memory: exam Fri 15 Nov (said Sun) · usually sleeps ~01:00 · likes filter coffee
 </now>
 ```
@@ -426,9 +443,9 @@ Input: the turn window, plus the active facts with the same `canonical_key` pref
 ### 9.2 TTS service API (`tts_service/`, port 8081)
 | Endpoint | Body | Returns |
 |---|---|---|
-| `POST /synthesize` (streaming) | `{text, language:"Tamil"\|"English", emotion?:str, voice:"medusa", turn_id, chunk_id}` | `application/octet-stream`: 24 kHz int16 mono, first bytes ASAP; `X-TTFA-ms`, `X-RTF` trailers in a final JSON line on a side channel |
+| `POST /synthesize` (streaming) | `{text, language:"Tamil"\|"English", emotion?:str, voice:"lyra", turn_id, chunk_id}` | `application/octet-stream`: 24 kHz int16 mono, first bytes ASAP; `X-TTFA-ms`, `X-RTF` trailers in a final JSON line on a side channel |
 | `GET /health` | — | `{status, mode, vram_mb, voice_loaded, warm}` |
-| `GET /voices` | — | `["medusa", "indic_sample1..4"]` |
+| `GET /voices` | — | `["lyra", "indic_sample1..4"]` |
 
 Internals follow the iNavLabs `mio_session.py` pattern: Qwen3 chat template, audio tokens `id − speech_offset`, `MioCodec.decode` re-decoding the full context every 16 tokens (`decode_every`) and emitting only the fresh tail. The voice is a fixed `global_embedding` (D-11). The emotion maps from mood: `happy, sad, angry, surprise` (Indic) or `happy, sad, confused, whisper, enunciated` (English).
 
@@ -440,7 +457,7 @@ A chunk is rejected, and resynthesised on the fallback engine, when any of these
 - first-chunk latency > 1.5 s
 
 ### 9.4 Fallback (D-38)
-`VoiceStage` holds a `CircuitBreaker(tts)` (3 failures in 60 s → open 30 s → half-open probe). While open, chunks go to the CPU `TTSRouter` (Kokoro EN / Piper TA, existing code). The client receives `voice_degraded{reason}` once, and the UI shows a quiet "backup voice" note.
+`VoiceStage` holds a `CircuitBreaker(tts)` (3 failures in 60 s → open 30 s → half-open probe). **One voice only (D-47):** while open, with the default `TTS_FALLBACK=text`, Lyra plays the pre-rendered `voice_tired` line in her own voice once, then streams replies as on-screen text (`assistant_delta` as usual, no `0x02` audio) until the breaker closes. With `TTS_FALLBACK=kokoro_piper` (opt-in), chunks go to the CPU `TTSRouter` (Kokoro EN / Piper TA) instead. The client receives `voice_degraded{reason, fallback:"text"|"cpu_voice"}` once, and the UI shows a quiet "voice resting, reading mode" note. Pre-rendered lines live in `data/voice_cache/` (persisted, generated once at G3 voice selection, regenerated when the voice changes), so they work even when `tts` is down at boot.
 
 ---
 
@@ -487,6 +504,8 @@ See §6.6. The SceneNote is kept in RAM for the session, and only text is ever p
 
 ## 11. Memory v4 (D-20, D-31, D-32)
 
+> **Extended by [user-model.md](user-model.md) (D-42, D-43, D-48):** a total-recall archive (every turn verbatim plus per-turn signals) is the source of truth, and migration `003_archive_user_model.sql` adds `turn_signals`, `observations`, `audio_clips` (opt-in), `lyra_self`, `insights`, `routines`, `style_profile`, `mood_daily`, `open_loops`, `topics` and `relationship_state`. Retrieval also covers archive turns. A nightly **reflection** job writes the understanding layer. Everything below §11.1 still holds; user-model.md adds to it.
+
 ### 11.1 Schema (migration `002_memory_v4.sql`; `001_baseline.sql` = current v3 schema)
 ```sql
 schema_version(version INTEGER PRIMARY KEY, applied_at TEXT)
@@ -509,7 +528,7 @@ Indexes go on `facts(canonical_key, status)`, `facts(subject_id)`, `memory_jobs(
 
 ### 11.2 Migration runner
 - `backend/memory/migrate.py` applies `migrations/NNN_*.sql` in order, inside a transaction, and records `schema_version`.
-- Before applying, it copies `medusa.db` to `data/backups/medusa-<ts>.db` (last 5 kept).
+- Before applying, it copies `lyra.db` to `data/backups/lyra-<ts>.db` (last 5 kept).
 - Forward-only. A failure aborts startup with a clear log; the DB is untouched, because the migration is transactional.
 - **This PR needs Lebi's approval** (CLAUDE.md: migrations).
 
@@ -541,6 +560,7 @@ At session end, a job (slot 1) writes a ≤ 300-token profile from active facts 
 - "Forget that" (voice or UI) deletes the facts extracted from the last turn (`source_event_id`).
 - Deleting a fact sets `status = 'deleted'`, removes its `memory_items`/vec/fts rows, and enqueues an outbox delete.
 - "Forget everything" requires confirmation, then truncates all memory tables, vec, fts and Neo4j, keeping sessions and messages unless "also conversations" is ticked.
+- Turn-level edit/delete with propagation, forget-a-person, export with archive and audio, and `make memory-rebuild`: see user-model.md §7.
 
 ---
 
@@ -549,9 +569,10 @@ At session end, a job (slot 1) writes a ≤ 300-token profile from active facts 
 | Mind (publishes slot) | Slot content | Importance |
 |---|---|---|
 | Arrival (perception) | `user_arrived` + absence length + time of day | important if absent ≥ 2 h or it's the first sighting today |
-| Follow-up (memory) | a due fact (`has_exam`, `valid_from` today/tomorrow), an open thread from the last episode | important |
+| Follow-up (memory) | an `open_loops` row due today/tomorrow or ≥ 2 days overdue (user-model.md §5), a due fact (`has_exam`, `valid_from` today/tomorrow); ≤ 1 follow-up per loop per day, ≤ `OPEN_LOOP_MAX_FOLLOWUPS` total | important |
+| Weekly (reflection) | Sunday-evening weekly insight, or the 30-day social-time nudge (persona.md §6.5) | regular |
 | Wellbeing (perception + affect) | `long_focus` ∧ `tired`, `slouch_long`, low mood after a sad turn | regular → important if sustained 15 min |
-| Silence (Vocalis tiers) | user went quiet ≥ 45 s after Medusa asked a question | regular, tier 0→2 |
+| Silence (Vocalis tiers) | user went quiet ≥ 45 s after Lyra asked a question | regular, tier 0→2 |
 
 **Loop:**
 - Ticks every 10 s.
@@ -561,7 +582,7 @@ At session end, a job (slot 1) writes a ≤ 300-token profile from active facts 
 - `prompt` → the instruction runs through the normal slot-0 reply path (state `GREETING/INITIATIVE`), and the delivery is written to `initiative_ledger(attention_key, revision)`, so the same condition is never announced twice.
 - The **arrival greeting is exempt from the cooldown**, once per arrival.
 
-**PAD mood (Medusa's own):**
+**PAD mood (Lyra's own):**
 - `P`, `A`, `D` ∈ [−1, 1], baseline (0.3, 0.1, 0.1), half-life 10 min toward the baseline.
 - Each turn: `P += 0.3·user_valence + 0.2·reply_mood_valence`, `A += 0.3·user_arousal`, clamped.
 - Maps to the default TTS emotion when the reply has no `[mood]`: P > 0.45 ∧ A > 0.35 → happy; P < −0.3 → sad; else none.
@@ -606,6 +627,7 @@ All responses are JSON and errors use `{error:{code, message}}`.
 | POST | `/api/memory/forget` | `{scope:"last_turn"\|"all", include_conversations?:bool}` |
 | GET | `/api/memory/export` | JSON dump of all memory (portability) |
 | GET | `/api/benchmarks/latest` | dev: latest gate summaries |
+| … | `/api/archive/*`, `/api/model/*`, `/api/settings/archive` | archive search, turn edit/delete, audio, insights, routines, style, mood, relationship, open loops, Lyra self: see user-model.md §8 |
 
 ---
 
@@ -621,7 +643,7 @@ All responses are JSON and errors use `{error:{code, message}}`.
 | `TURN_DEADLINE_THINK_S` | `4.5` | |
 | `LLM_TTFT_TIMEOUT_S` | `3.0` | → canned line |
 | `TTS_BASE_URL` | `http://tts:8081` | |
-| `TTS_VOICE` | `medusa` | cloned voice id |
+| `TTS_VOICE` | `lyra` | cloned voice id |
 | `TTS_FIRST_CHUNK_TIMEOUT_S` | `1.5` | → fallback |
 | `TURN_DETECTOR` | `smart` | `smart` \| `silence` |
 | `SMART_TURN_THRESHOLD_EN` / `_TA` | `0.5` / `0.5` | tuned at G5 |
@@ -638,7 +660,9 @@ All responses are JSON and errors use `{error:{code, message}}`.
 | `NEO4J_ENABLED` | `true` | projection on/off |
 | `PREFLIGHT_MAX_FOREIGN_VRAM_MB` | `300` | |
 
-Removed: `STT_*` (Profile A), `EMOTION_FER_*`, `PIPER_TAMIL_ENABLED` (Piper is now always the fallback), `MEMORY_HYBRID_RETRIEVAL`.
+Added by the 2026-11-24 revision: `TTS_FALLBACK` (`text` \| `kokoro_piper`, default `text`, D-47) · `BACKCHANNEL_LEVEL` (`off`, spoken only after G8, persona.md §5.3) · `RELATIONSHIP_LEVEL_PIN` (empty = computed) · `ARCHIVE_AUDIO`, `ARCHIVE_AUDIO_DAYS`, `REFLECTION_HOUR`, `REFLECTION_IMPORTANCE_TRIGGER`, `OPEN_LOOP_MAX_FOLLOWUPS`, `ARCHIVE_RETRIEVAL` (user-model.md §9) · `DB_PATH` default becomes `data/lyra.db` (rename-lyra.md).
+
+Removed: `STT_*` (Profile A), `EMOTION_FER_*`, `PIPER_TAMIL_ENABLED` (Piper only exists behind `TTS_FALLBACK=kokoro_piper`), `MEMORY_HYBRID_RETRIEVAL`.
 
 ---
 
@@ -661,7 +685,7 @@ Removed: `STT_*` (Profile A), `EMOTION_FER_*`, `PIPER_TAMIL_ENABLED` (Piper is n
 | E2 | Camera denied or unavailable | reject or track ended | perception off, `camera{on:false}` | "camera unavailable" chip | toggle retries |
 | E3 | WS drop | `onclose` | client backoff 0.5→1→2→4→8 s, resume `session_id`; server cancels the turn, persists partial text, enqueues jobs | "reconnecting…" | automatic |
 | E4 | Protocol mismatch | `hello.protocol ≠ 4` | close 4400 | "app updated; reload" | reload |
-| E5 | Second tab | new `hello` | old tab gets 4409 | "Medusa moved to another tab" | — |
+| E5 | Second tab | new `hello` | old tab gets 4409 | "Lyra moved to another tab" | — |
 | E6 | Silero/Smart Turn load fail | exception at startup | `TURN_DETECTOR=silence` (0.9 s) | health degraded | restart |
 | E7 | Utterance > 28 s | duration cap | force end of turn, process what was said | — | — |
 | E8 | Hear: E4B rejects audio or 5xx | HTTP error | `transcript_first` retry once → else canned "didn't catch that" line | spoken | breaker |
@@ -671,8 +695,8 @@ Removed: `STT_*` (Profile A), `EMOTION_FER_*`, `PIPER_TAMIL_ENABLED` (Piper is n
 | E12 | Think deadline 4.5 s | Deadline | cancel and re-issue as a short reflex answer | answer ≤ 5 s | — |
 | E13 | Control-tag loop | > 1 re-issue | ignore the tag, answer reflex | — | — |
 | E14 | Keyframe timeout 600 ms or camera off | Deadline | re-issue with `camera=off` | "can't see right now" | — |
-| E15 | TTS down, OOM, slow or invalid PCM | HTTP error / Deadline / validation | that chunk → CPU fallback; breaker | "backup voice" note | half-open probe |
-| E16 | TTS VRAM short at start | `mem_get_info` | int8 → else `mode=unavailable` (CPU fallback for all) | health degraded | `make restart-tts` after freeing VRAM |
+| E15 | TTS down, OOM, slow or invalid PCM | HTTP error / Deadline / validation | breaker; `voice_tired` line (Lyra's voice, cached) once → text mode (default) or CPU voice (opt-in) | "voice resting, reading mode" note | half-open probe; voice returns mid-session without reload |
+| E16 | TTS VRAM short at start | `mem_get_info` | int8 → else `mode=unavailable` (text mode, or CPU voice if opted in) | health degraded | `make restart-tts` after freeing VRAM |
 | E17 | Glance fail | error / Deadline 2.5 s | keep the last SceneNote (with age) | — | next trigger |
 | E18 | SER fail | exception | affect = face-only or none | — | — |
 | E19 | Extraction invalid JSON | schema validation | 1 repair retry → dead-letter (`attempts`) | — | next idle, ≤ 3 attempts, then parked and shown in HUD |
@@ -687,14 +711,14 @@ Removed: `STT_*` (Profile A), `EMOTION_FER_*`, `PIPER_TAMIL_ENABLED` (Piper is n
 | E28 | Unhandled exception in a turn | `except Exception` at the turn boundary | `logger.exception`; `error{internal}`; state → listening | "something went wrong, try again" (spoken canned) | — |
 
 ### 16.3 Canned lines
-Pre-synthesised at boot with the Medusa voice and kept in RAM, so they work even while the LLM is down. Each has EN, TA and mix variants:
+Pre-synthesised at boot with the Lyra voice and kept in RAM, so they work even while the LLM is down. Each has EN, TA and mix variants:
 - `ack_think` ("hmm, wait, let me think" / "ம்ம், ஒரு நிமிஷம் யோசிக்கிறேன்" / "hmm, oru nimisham, think pannren")
 - `lag` (brain lag)
 - `down` (brain is down, type to me)
 - `didnt_catch`
 - `cant_see`
 
-If the TTS is down at boot, they are synthesised with the fallback voice and regenerated when the TTS returns.
+They are stored on disk in `data/voice_cache/<line>_<lang>.pcm`, so they exist even if the TTS is down at boot (D-47: never a second voice). Added line: `voice_tired` ("my voice is acting up, I'll type for a bit"). If the cache is empty **and** the TTS is down (first ever boot), the lines are shown as text only.
 
 ### 16.4 Health semantics
 - `components.*.status` ∈ `ok | degraded | down`.
@@ -705,7 +729,7 @@ If the TTS is down at boot, they are synthesised with the fallback voice and reg
 
 ## 17. Observability
 - **Per-turn trace:** `turn_id` (ULID) with stage timestamps: `speech_start, eot_decided, hear_sent, transcript_done, first_token, route, first_chunk_text, tts_first_byte, first_audio_sent, done`, plus the derived durations. Written as one `turn_trace` event (EventWriter) and streamed as `trace` to the dev HUD.
-- **Logs:** `medusa.log` (daily rotation), with structured `key=value` fields including `turn_id`. No transcripts at INFO level. DEBUG may include them, and is off by default.
+- **Logs:** `lyra.log` (daily rotation), with structured `key=value` fields including `turn_id`. No transcripts at INFO level. DEBUG may include them, and is off by default.
 - **Metrics:** Prometheus histograms per stage, plus breaker states, queue depths and memory job counts.
 - **Benchmarks:** `docs/benchmarks/<gate>-<YYYY-MM-DD>.md` + `.json`. Generated report files are restored rather than committed when they are noise (CLAUDE.md rule).
 
@@ -713,11 +737,13 @@ If the TTS is down at boot, they are synthesised with the fallback voice and reg
 
 ## 18. Privacy and safety
 - Camera is **off by default** (`CAMERA_DEFAULT=off`). There is an always-visible camera dot and a hard toggle. When off, the browser stops the track: no frames, percepts or keyframes.
-- **No pixels or audio persisted.**
-  - Audio lives in RAM for the turn only; history keeps the transcript.
-  - Keyframes are discarded after the glance.
-  - S8 test: scan `clarity-data`, `logs/` and `neo4j-data` for JPEG/RIFF/PCM signatures after a session.
-- Memory is local and fully viewable, editable and exportable, with forget and forget-all (§11.7).
+- **Everything stays on the laptop (D-42).** Every conversation is archived verbatim with its signals, forever, in `data/lyra.db`. Nothing is sent anywhere.
+- **No pixels persisted, ever.** Keyframes are discarded after the glance; only the SceneNote **text** is kept (`observations`).
+- **Audio only if Lebi opts in (D-48).** With `ARCHIVE_AUDIO=false` (default), audio lives in RAM for the turn only and history keeps the transcript. With it on, user utterances are stored as Opus under `data/audio/` with a retention window.
+  - S8 test: scan the data volume, `logs/` and `neo4j-data` for JPEG/RIFF/PCM/Opus signatures after a session: none with the toggle off; with it on, only under `data/audio/`.
+- Memory is local and fully viewable, searchable, editable and exportable, with turn-level delete, forget-a-person, forget and forget-all (§11.7, user-model.md §7).
+- Sensitive inferences (health, sexuality, religion, politics) are never derived by reflection; they are stored only if he said them himself (user-model.md §4.3).
+- Disk encryption is recommended at the OS level (LUKS); app-level SQLCipher was rejected (user-model.md §7).
 - The crisis override in the persona is kept, plus a combined signal (distress words plus a crying face or voice affect) that forces the non-casual, supportive path with a crisis-line mention.
 - `reference/` code is never executed. Eval data stays in gitignored `eval/`.
 
@@ -773,6 +799,7 @@ The rule from CLAUDE.md holds: each bug fix gets a failing-first regression test
 | G7 | P9 | traces from the soak + 50 reflex/10 think/10 look turns; both hear modes | S1, S2, S6 | tune (§3.1 ladder, segmentation); hear mode switch |
 | G8 | P9 | 10 min of speech over speakers with and without AEC | ≥ 95% echo suppressed, ≤ 1 false barge-in / 10 min | stay half-duplex |
 | G9 | P5 | Chrome performance trace | face ≥ 15 fps, main thread < 8 ms/frame | pose off, face 10 fps |
+| G10 | P7, re-run P9 | "feels like a friend": friend rubric on 60 scripts, opener diversity, follow-up precision, fabricated memory, boundary and narration checks, Lebi's weekly 1–5 (persona.md §8) | rubric mean ≥ 4.0; diversity ≥ 0.7; follow-up precision ≥ 90%; 0 fabrications, 0 boundary violations, 0 narrations; weekly ≥ 4 for 3 weeks | tune prompt and style rules → test Profile B brain on G10 |
 
 ---
 
@@ -782,15 +809,15 @@ Each phase is one or more issues → `fix/…`, `feat/…` or `refactor/…` bra
 
 | Phase | Scope | Exit (DoD) |
 |---|---|---|
-| **P0 Hygiene fixes** | Unicode tokeniser (retriever/extractor/neo4j_store) + regression test with Tamil memory · remove duplicate summary injection · move emotion and memory after history · EventWriter off the token loop · producer/consumer TTS · TTS routing by reply script · greeting language | all tests green; TTFT before/after recorded |
+| **P0 Hygiene fixes** | **Rename to Lyra** (rename-lyra.md: persona alias, DB copy, log, compose names with pinned volume, localStorage fallback) · Unicode tokeniser (retriever/extractor/neo4j_store) + regression test with Tamil memory · remove duplicate summary injection · move emotion and memory after history · EventWriter off the token loop · producer/consumer TTS · TTS routing by reply script · greeting language | all tests green; TTFT before/after recorded |
 | **P1 Eval kit + G0 baseline** | import voice (label rule), segment, draft transcripts, review tool, turn set, vision set, dialog set, bench harness, `make preflight` | G0 baseline report for v3 and the candidate components; refs.csv (or the silver fallback) |
 | **P2 Brain** | `llm` → E4B + mmproj flags (§5.1); `HearStage` (Native/Whisper-Indic); `BrainClient` with slots, deadlines and the tag parser; `InferenceScheduler`; parallel/transcript-first hear; protocol v4 skeleton (`hello`, tagged binary, error codes, takeover) | G1 and G2 pass, or Profile B adopted; v3 UI still works through a compat shim until P8 |
-| **P3 Voice** | `tts_service` (Indic-Mio), voice clone selection (`config/voice/medusa.pt`), mood/emotion mapping, PCM validation, breaker + CPU fallback, canned lines | G3 pass (or a fallback adopted); kill-tts test (S7) passes |
+| **P3 Voice** | `tts_service` (Indic-Mio), voice clone selection (`config/voice/lyra.pt`), mood/emotion mapping, PCM validation, breaker + CPU fallback, canned lines | G3 pass (or a fallback adopted); kill-tts test (S7) passes |
 | **P4 Turn-taking** | `turn_detect.py` (Silero + Smart Turn EN/TA, routed by last language), 1.5 s silence cap, 28 s cap | G5 pass |
 | **P5 Eyes** | browser perception worker + `percept`; `PerceptState`, events, `perception_minutes`; glance policy + SceneNote; `[look]` route; camera-off-by-default UX | G9 pass; vision part of G1 re-run end-to-end |
-| **P6 Memory v4** | migration runner + `001`/`002` (**Lebi approval**); LLM extractor (idle); EmbeddingGemma + sqlite-vec + FTS5 trigram; RRF retrieval; Neo4j outbox projection + `graph-rebuild`; profile job; Notebook REST; forget/export | G4 pass; S4 probes ≥ 8/10; migration tests |
-| **P7 Friend** | initiative engine (slots, reviewer, ledger, cooldown, quiet); `[think]` route with ack; PAD mood; emotion2vec+ | G6 pass; initiative never fires during speech (test); ≤ 1 line/15 min (test) |
-| **P8 UI v4 "Marginalia"** | voice line canvas, synced phrase, margin notes (see/remember), status rail, Notebook drawer, dev HUD, Tamil fonts, arrival screen, shadcn base, protocol v4 client (Zod generated), playback stamps | Playwright e2e green; reduced-motion OK; mobile layout OK |
+| **P6 Memory v4** | migration runner + `001`/`002` (**Lebi approval**); LLM extractor (idle); EmbeddingGemma + sqlite-vec + FTS5 trigram; RRF retrieval; Neo4j outbox projection + `graph-rebuild`; profile job; Notebook REST; forget/export · **archive + user model** (user-model.md): migration `003` (**Lebi approval**), turn_signals/observations writes, archive FTS/vec, archive search API, turn edit/delete propagation, opt-in audio archive, export zip, `make memory-rebuild`/`make backup` | G4 pass incl. archive-search hit@5 ≥ 0.85 and style probes ≥ 7/10; S4 probes ≥ 8/10; S9; migration and data-mutation tests (full coverage) |
+| **P7 Friend** | initiative engine (slots, reviewer, ledger, cooldown, quiet); `[think]` route with ack; PAD mood; emotion2vec+ · **human-likeness** (persona.md): persona bible + `lyra_self`, relationship levels, `style.py` (length/energy mirroring, opener ring buffer, banned openers, disfluency cap, boundary post-filter), reflection job (insights, routines, style, open loops, weekly), Follow-up + Weekly minds, healthy-companion rules, visual backchannel event | G6 pass; G10 pass; initiative never fires during speech (test); ≤ 1 line/15 min (test) |
+| **P8 UI v4 "Marginalia"** | voice line canvas (+ backchannel nod), synced phrase, margin notes (see/remember), status rail, Notebook drawer (About you, People, Timeline, Conversations search, Patterns, Open threads, Lyra, Settings; user-model.md §6), weekly rating prompt, dev HUD, Tamil fonts, arrival screen, shadcn base, protocol v4 client (Zod generated), playback stamps | Playwright e2e green; reduced-motion OK; mobile layout OK |
 | **P9 Polish + release** | AEC (WebRTC APM, browser-stamped clocks) behind `AEC_ENABLED`; latency tuning; soak; docs; `v4.0.0` (backend, frontend, protocol 4) | G7 (S1–S8) pass; G8 pass or documented as half-duplex; VERSIONS/STATUS/HANDOVER updated |
 
 **Order:** P0 → P1 → P2 → P3 → P4 → (P5 ∥ P6) → P7 → P8 → P9. P8's scaffold can start after P2 lands protocol v4.
@@ -810,6 +837,11 @@ Each phase is one or more issues → `fix/…`, `feat/…` or `refactor/…` bra
 | Perception feels creepy | M | H | camera off by default, never narrated, notes with "why" plus dismiss, no storage of pixels |
 | Licence surprises (Indic-Mio, smart-turn-tamil, e2v+) | L | M | read the cards at the start of each phase; personal use (D-15); fallbacks listed |
 | Scope creep (tools, screen) | M | M | D-16/D-13/D-40: v4.1 backlog only |
+| Archive grows without bound | L | L | text is ~1–2 MB per 100 h of talk; audio is opt-in with retention; `make backup` + export |
+| User model becomes wrong or creepy (bad insight, sensitive inference) | M | H | ≥ 2 evidence turns from ≥ 2 days; sensitive categories banned; every item shows its source and can be dismissed; G10 checks |
+| Companion dependence | M | H | healthy-companion rules (persona.md §6), social-time signal, no engagement hooks |
+| Rename orphans the data volume | L | H | volume pinned with `name:`; `docker compose config` check in the rename PR (rename-lyra.md) |
+| Text-only fallback feels broken when TTS dies | M | M | pre-rendered `voice_tired` line in her voice; breaker recovers mid-session; `kokoro_piper` opt-in |
 
 ---
 

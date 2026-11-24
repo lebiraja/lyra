@@ -1,4 +1,4 @@
-# Medusa v4: Roadmap and Benchmark Gates
+# Lyra v4: Roadmap and Benchmark Gates
 
 > **Superseded by [plan.md](plan.md) §20–21 and [checklist.md](checklist.md) (2026-11-11).** The phases are renumbered P0–P9, and the gate thresholds were finalised there.
 

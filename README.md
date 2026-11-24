@@ -1,8 +1,8 @@
-# Medusa
+# Lyra
 
-A fully local voice companion. Talk out loud in **English, Tamil or Tanglish** and get a voice back from **Medusa**, "the friend to share all the things". She greets you first, picks up your mood from voice and face, and remembers you across conversations. Nothing leaves the machine.
+A fully local voice companion. Talk out loud in **English, Tamil or Tanglish** and get a voice back from **Lyra**, "the friend to share all the things". She greets you first, picks up your mood from voice and face, and remembers you across conversations. Nothing leaves the machine.
 
-> Naming: the repo folder is `lyra`, the persona is **Medusa**, and the docker services, network, volumes and Docker Hub images still use the older `clarity-*` names.
+> Naming: the repo folder is `lyra`, the persona is **Lyra**, and the docker services, network, volumes and Docker Hub images still use the older `clarity-*` names.
 
 - **Brain:** Qwen3-4B-Instruct-2507 (Q4 GGUF, llama.cpp, GPU)
 - **Ears:** faster-whisper large-v3-turbo (CTranslate2, GPU int8), with automatic language detection
@@ -43,7 +43,7 @@ About 1.5–3 s from the end of your speech to the first audio.
 
 ## Language
 
-Speak in English, Tamil or Tanglish. The language is detected per utterance and Medusa replies in the same one. Below 0.7 detection confidence it falls back to English. Relevant settings: `STT_MODEL`, `STT_DEVICE`, `PIPER_TAMIL_ENABLED` (see `.env.example`).
+Speak in English, Tamil or Tanglish. The language is detected per utterance and Lyra replies in the same one. Below 0.7 detection confidence it falls back to English. Relevant settings: `STT_MODEL`, `STT_DEVICE`, `PIPER_TAMIL_ENABLED` (see `.env.example`).
 
 ## Docker Hub
 

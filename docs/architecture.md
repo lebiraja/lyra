@@ -60,17 +60,17 @@ States: `listening → transcribing → generating → speaking → listening`.
 
 ## Personas (conversational modes)
 
-The application runs in a single persona mode: **Medusa** (`config/personas/medusa.yaml`, loaded by `backend/core/personas.py`), representing "the friend to share all the things":
+The application runs in a single persona mode: **Lyra** (`config/personas/medusa.yaml`, loaded by `backend/core/personas.py`), representing "the friend to share all the things":
 
 | Persona | Role | Special |
 |---|---|---|
-| Medusa | friend to share all things (default) | `proactive` + `cross_session_memory` |
+| Lyra | friend to share all things (default) | `proactive` + `cross_session_memory` |
 
-The persona is **locked** as Medusa for all conversations (stored in the `sessions.persona` column).
+The persona is **locked** as Lyra for all conversations (stored in the `sessions.persona` column).
 
-**Medusa** features:
-- *Proactive*: on a fresh Medusa conversation the pipeline generates and speaks a greeting first (`assistant_greeting` event) — the user doesn't have to start.
-- *Cross-session memory*: when a Medusa conversation ends (disconnect, or switching away), the LLM writes a 1–3 sentence summary into the `memories` table. The next Medusa conversation injects those summaries into the `{memory}` slot of its prompt, so Medusa "remembers" across sessions. Summaries are bounded (most-recent N) so they never blow the context budget. The prompt forbids inventing history not in memory.
+**Lyra** features:
+- *Proactive*: on a fresh Lyra conversation the pipeline generates and speaks a greeting first (`assistant_greeting` event) — the user doesn't have to start.
+- *Cross-session memory*: when a Lyra conversation ends (disconnect, or switching away), the LLM writes a 1–3 sentence summary into the `memories` table. The next Lyra conversation injects those summaries into the `{memory}` slot of its prompt, so Lyra "remembers" across sessions. Summaries are bounded (most-recent N) so they never blow the context budget. The prompt forbids inventing history not in memory.
 
 ## Emotion (CPU only, `backend/core/emotion.py`)
 
@@ -84,14 +84,14 @@ The persona is **locked** as Medusa for all conversations (stored in the `sessio
 - **Contracts** in `interfaces.py` (store, extractor, retriever, assembler, consolidator, graph store). The pipeline depends only on these.
 - **Event log:** every state transition, transcript, delta and emotion is written to `conversation_events`.
 - **Extraction:** `ShadowMemoryExtractor` turns each turn into `memory_artifacts` (preferences, goals, employment) using heuristic English patterns.
-- **Retrieval:** `HybridMemoryRetriever` combines recent messages, artifacts ranked by lexical overlap, Medusa summaries and (if enabled) the Neo4j graph. `HybridContextAssembler` builds `[system, emotion, memory block, history]` within the token budget. When `MEMORY_HYBRID_RETRIEVAL=false` it falls back to `HistoryContextAssembler`.
+- **Retrieval:** `HybridMemoryRetriever` combines recent messages, artifacts ranked by lexical overlap, Lyra summaries and (if enabled) the Neo4j graph. `HybridContextAssembler` builds `[system, emotion, memory block, history]` within the token budget. When `MEMORY_HYBRID_RETRIEVAL=false` it falls back to `HistoryContextAssembler`.
 - **Graph:** Neo4j via `neo4j_store.py`, only with `SEMANTIC_MEMORY_ENABLED=true` and `docker compose --profile memory`.
 - Known limits (English-only extraction and tokeniser, cache-unfriendly prompt order) are tracked in `docs/research/2026-11-current-state-audit.md` §3.
 
 ## Local Time-Series Logging & Persistence
 
 - **Local Time-Series Logging**: Time-series log files are written locally to the `/app/logs/medusa.log` file, using python's `TimedRotatingFileHandler` to automatically rotate daily at midnight (keeping up to 30 past log files). This logs directory is mapped as a volume `./logs:/app/logs` in `docker-compose.yml` to persist logs locally on the host filesystem.
-- **SQLite Database**: SQLite database files are saved as `medusa.db` (`backend/db.py`) in the mapped data volume: contains `sessions` (with `persona`), `messages`, `conversation_events`, `memory_artifacts`, and `memories` (Medusa's rolling summaries) tables. The first user message becomes the session title. The frontend stores the active session id in `localStorage` and resumes it over the WS.
+- **SQLite Database**: SQLite database files are saved as `medusa.db` (`backend/db.py`) in the mapped data volume: contains `sessions` (with `persona`), `messages`, `conversation_events`, `memory_artifacts`, and `memories` (Lyra's rolling summaries) tables. The first user message becomes the session title. The frontend stores the active session id in `localStorage` and resumes it over the WS.
 
 ## Frontend (Quiet Room)
 

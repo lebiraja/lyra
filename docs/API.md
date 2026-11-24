@@ -16,7 +16,7 @@ Base URL: `http://localhost:2000` (nginx) or `http://127.0.0.1:2324` (backend di
 ```
 
 ### `GET /api/personas`
-The conversational modes for the picker. `{ "personas": [{ "id", "name", "tagline" }] }` — Medusa.
+The conversational modes for the picker. `{ "personas": [{ "id", "name", "tagline" }] }` — Lyra.
 
 ### `GET /api/sessions`
 `{ "sessions": [{ "id", "title", "persona", "created_at", "message_count" }] }`
@@ -53,7 +53,7 @@ One connection = one live conversation. Binary frames are audio; text frames are
 | `{"type":"state","state"}` | `listening` / `transcribing` / `generating` / `speaking` |
 | `{"type":"user_transcript","text","language","language_probability"}` | what STT heard + detected language (`en`/`ta`/…) and its probability |
 | `{"type":"assistant_delta","text"}` | streaming token(s) |
-| `{"type":"assistant_greeting","text"}` | streaming token(s) of Medusa's proactive opening (fresh session, no user turn) |
+| `{"type":"assistant_greeting","text"}` | streaming token(s) of Lyra's proactive opening (fresh session, no user turn) |
 | `{"type":"assistant_done","text"}` | full reply text |
 | `{"type":"interrupted"}` | barge-in happened — flush your playback queue |
 | `{"type":"emotion","label","confidence","source"}` | fused user emotion for this turn (sent only when non-neutral and above threshold); `source` = `face`/`voice`/`fused`/`voice_only` |

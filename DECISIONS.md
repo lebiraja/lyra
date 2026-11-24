@@ -112,3 +112,18 @@ Format: `ID · date · status (proposed / accepted / superseded) · decision · 
 - D-3 → D-15.
 - D-4: WebSocket is kept, and AEC comes in P9.
 - D-5: keep our pipeline.
+
+---
+
+## 2026-11-24 — Lyra rename, total recall, user model, human-likeness (D-41…D-48)
+
+**Context:** Lebi: store everything about him (all transcripts and conversations) fully locally; rename Medusa to Lyra; just one voice; make her more human and personal, analysing him the way a friend would. Research: `docs/research/2026-11-human-likeness.md`, `docs/research/2026-11-user-modelling-memory.md`.
+
+- **D-41 Name:** Lyra for product, persona and voice (formerly Medusa / Clarity). Docs renamed now; the code rename is P0 task 0 (`docs/v4/rename-lyra.md`). `medusa` stays as a persona alias; the DB is copied, not moved; the compose data volume is pinned by `name:`.
+- **D-42 Total recall:** every turn is archived verbatim (user transcript, Lyra's full and actually-spoken reply, language, route, timestamps) with per-turn signals (voice emotion, speech rate, face affect, attention, SceneNote text). Kept forever, locally. The archive is the source of truth; facts, insights, the profile and all indexes are rebuildable projections (`make memory-rebuild`). Amends D-20.
+- **D-43 User model:** five layers (archive → signals → knowledge → understanding → profile). A nightly reflection job (Generative Agents-style, importance-triggered) writes insights, routines, the style profile, topics, a mood timeline and open loops. No sensitive-category inferences. Migration `003` needs Lebi's approval (`docs/v4/user-model.md`).
+- **D-44 Human behaviours:** mirrored length and energy, reactions instead of always answering, a light disfluency cap, an anti-repetition opener ring buffer, banned sycophantic openers, clarifying questions, callbacks and follow-ups. Backchannels are visual in v4.0 and spoken only after G8, opt-in (`docs/v4/persona.md`).
+- **D-45 Consistent self:** persona bible + `lyra_self` memory. Drops v3's "Not an AI": honest about being an AI on his laptop, never invents a human body or past.
+- **D-46 Relationship and wellbeing:** familiarity levels 0–4 gate teasing, nicknames and depth. Healthy-companion rules (pro-social, no guilt hooks, a late-night nudge, a social-time signal, a crisis path with Tele-MANAS 14416). New gate **G10** "feels like a friend".
+- **D-47 One voice:** no second voice by default. On TTS failure, a pre-rendered line in Lyra's voice, then text mode (`TTS_FALLBACK=text`); Kokoro/Piper are only opt-in (`kokoro_piper`). Amends D-38 and the G3 fail path, which must keep a single voice.
+- **D-48 Audio archive opt-in:** `ARCHIVE_AUDIO=false` by default; when on, user utterances are stored as Opus in `data/audio/` with retention. Pixels are never stored. Amends S8.
