@@ -54,3 +54,7 @@ Pre-built images: `lebiraja/clarity-backend` (~1.8 GB, CUDA runtime + FastAPI + 
 Start at **[docs/README.md](docs/README.md)** (index), then [HANDOVER.md](HANDOVER.md). The running system is described in [architecture](docs/architecture.md), [API](docs/API.md), [docker](docs/docker.md) and [fixes](docs/FIXES.md). The next version, a companion that also sees you, is proposed in [docs/v4/](docs/v4/architecture.md).
 
 Old code (the v1 fine-tuning pipeline, multi-persona configs) lives only in git history.
+
+## License
+
+Licensed under the [Apache License 2.0](LICENSE). Model weights downloaded by `make models` keep their own licenses.

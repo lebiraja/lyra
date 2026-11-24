@@ -4,6 +4,11 @@ Activity log, newest first. One entry per feature, fix, refactor, config change,
 
 ---
 
+## 2026-11-24 — chore: Apache 2.0 license
+
+**Type:** config / legal
+**What:** Added `LICENSE` (Apache License 2.0, verbatim from apache.org) and a License section in `README.md`. Downloaded model weights keep their own licenses.
+
 ## 2026-11-24 — docs: Lyra rename, total-recall archive, user model, human-likeness
 
 **Type:** decision / plan / research

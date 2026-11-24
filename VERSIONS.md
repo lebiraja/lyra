@@ -8,9 +8,12 @@ SemVer per part. Bump every part you change. Unreleased changes are logged under
 | frontend | 2.0.0 | `frontend/package.json` |
 | WS protocol | 3 (implicit) | `docs/API.md`, `frontend/src/types/protocol.ts` |
 | persona (medusa → lyra in P0) | 1.1.0 | `config/personas/medusa.yaml` (human-touch prompt, July 2026) |
-| docs | 1.4.0 | this file |
+| docs | 1.4.1 | this file |
 
 ## Unreleased
+
+### docs 1.4.0 → 1.4.1 (2026-11-24)
+- Added Apache 2.0 `LICENSE` and README License section.
 
 ### docs 1.3.0 → 1.4.0 (2026-11-24)
 - Lyra rename in all docs (D-41). New: `docs/v4/user-model.md`, `docs/v4/persona.md`, `docs/v4/rename-lyra.md`, `docs/research/2026-11-human-likeness.md`, `docs/research/2026-11-user-modelling-memory.md`. Updated plan.md, checklist.md, DECISIONS (D-41…D-48), BLOCKERS, HANDOVER, CLAUDE.md, README and docs index.
