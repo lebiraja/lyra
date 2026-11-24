@@ -37,7 +37,7 @@ Speaks a synthesized question at the live stack and asserts on transcript, reply
 ```bash
 docker compose exec -e PYTHONPATH=/app backend python tests/e2e_voice_client.py     # English
 docker compose exec -e PYTHONPATH=/app backend python tests/e2e_tamil_client.py     # Tamil
-docker compose exec -e PYTHONPATH=/app backend python tests/e2e_personas_client.py  # Medusa: typed turn, greeting, cross-session memory
+docker compose exec -e PYTHONPATH=/app backend python tests/e2e_personas_client.py  # Lyra: typed turn, greeting, cross-session memory
 ```
 
 ## Troubleshooting

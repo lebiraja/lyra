@@ -4,6 +4,19 @@ Activity log, newest first. One entry per feature, fix, refactor, config change,
 
 ---
 
+## 2026-11-24 — docs: Lyra rename, total-recall archive, user model, human-likeness
+
+**Type:** decision / plan / research
+**What:** Lebi asked to store everything about him (all transcripts and conversations) fully locally, rename Medusa to Lyra, keep one voice, and make her more human and personal. Decisions D-41…D-48.
+- **Research:** `docs/research/2026-11-human-likeness.md` (backchannels, voice presence, social penetration, the OpenAI/MIT dependence findings) and `…-user-modelling-memory.md` (Generative Agents, Zep/Graphiti, Mem0, O-Mem, PERMA).
+- **New specs:** `docs/v4/user-model.md` (five-layer archive and user model, migration `003`, reflection, Notebook, archive API, edit/forget/export/rebuild), `docs/v4/persona.md` (Lyra bible, relationship levels, human behaviours, healthy-companion rules, gate G10) and `docs/v4/rename-lyra.md` (the code rename, done safely).
+- **Updated:** `plan.md` (S9/S10, one-voice fallback, privacy, G10, phases, risks), `checklist.md`, the v4 docs renamed to Lyra, and the current-state docs naming.
+
+**Next:** P0, starting with the rename PR, then the hygiene fixes.
+**Blockers:** new 👤 decision: whether to turn on the audio archive (default off). Migration `003` approval joins B-4.
+
+---
+
 ## 2026-11-11 — docs: v4 master plan + checklist (all decisions made)
 
 **Type:** decision / plan

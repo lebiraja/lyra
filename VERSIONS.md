@@ -7,10 +7,13 @@ SemVer per part. Bump every part you change. Unreleased changes are logged under
 | backend | 3.0.1 | `backend/main.py` (`FastAPI(version=...)`) |
 | frontend | 2.0.0 | `frontend/package.json` |
 | WS protocol | 3 (implicit) | `docs/API.md`, `frontend/src/types/protocol.ts` |
-| persona (medusa) | 1.1.0 | `config/personas/medusa.yaml` (human-touch prompt, July 2026) |
-| docs | 1.3.0 | this file |
+| persona (medusa → lyra in P0) | 1.1.0 | `config/personas/medusa.yaml` (human-touch prompt, July 2026) |
+| docs | 1.4.0 | this file |
 
 ## Unreleased
+
+### docs 1.3.0 → 1.4.0 (2026-11-24)
+- Lyra rename in all docs (D-41). New: `docs/v4/user-model.md`, `docs/v4/persona.md`, `docs/v4/rename-lyra.md`, `docs/research/2026-11-human-likeness.md`, `docs/research/2026-11-user-modelling-memory.md`. Updated plan.md, checklist.md, DECISIONS (D-41…D-48), BLOCKERS, HANDOVER, CLAUDE.md, README and docs index.
 
 ### docs 1.2.0 → 1.3.0 (2026-11-11)
 - Added `docs/v4/plan.md` (master plan) and `docs/v4/checklist.md`. Appended D-11…D-40 to DECISIONS. Updated BLOCKERS. Marked the v4 architecture and roadmap docs as superseded for decisions.

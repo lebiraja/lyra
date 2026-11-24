@@ -1,4 +1,4 @@
-# Medusa v4: Perceptive Companion Architecture (proposal)
+# Lyra v4: Perceptive Companion Architecture (proposal)
 
 > **Superseded for decisions by [plan.md](plan.md) (2026-11-11).** Kept as design rationale. Where they differ, plan.md wins (e.g. the brain is Gemma 4 E4B with native audio, the voice is Indic-Mio, and Neo4j is on by default as a projection).
 
@@ -178,7 +178,7 @@ Modelled on GLaDOS's Autonomy Core (`reference/dnhkng_GLaDOS/docs/autonomy.md`):
 Perception and memory events can trigger **proactive** lines, within strict limits:
 - **Triggers:** `user_arrived` (greeting using memory), `long_focus` + `looks_tired` ("dei, it's been an hour and a half, take a break?"), a remembered follow-up ("how did the exam go?"), and silence after a sad turn.
 - **Rate limits:** at most 1 unprompted line per ~15 min. Never while the user is talking or on a call (detect headphones plus speech to someone else). The user can say "be quiet for a while", which mutes initiative for N hours.
-- Every initiative line is logged with its trigger, so the user can see why Medusa spoke up.
+- Every initiative line is logged with its trigger, so the user can see why Lyra spoke up.
 
 ## 6. Latency budget (end of speech → first audio)
 
@@ -237,7 +237,7 @@ Changes to `docs/API.md` and `frontend/src/types/protocol.ts` together:
 - New server→client messages:
   - `{"type":"request_keyframe","reason"}`
   - `{"type":"scene","note"}`
-  - `{"type":"perception","state":{...}}` (what Medusa currently believes)
+  - `{"type":"perception","state":{...}}` (what Lyra currently believes)
   - `{"type":"memory_event","op":"added|updated|forgotten","item"}`
   - `{"type":"route","mode":"reflex|think|look"}`
   - `{"type":"trace","turn_id","stages":{...}}`

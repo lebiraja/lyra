@@ -1,6 +1,6 @@
 # Docs index
 
-## Running system (v3: Medusa)
+## Running system (v3: Lyra, formerly Medusa; code identifiers renamed in P0)
 | Doc | What |
 |---|---|
 | [architecture.md](architecture.md) | Services, voice pipeline, echo guard, persona, logging, frontend |
@@ -13,16 +13,21 @@
 |---|---|
 | **[v4/plan.md](v4/plan.md)** | **Master plan (approved): every model, decision, full flow, error matrix, protocol, schema, gates, phases. This one wins.** |
 | **[v4/checklist.md](v4/checklist.md)** | **Executable checklist per phase (P0–P9), gates, Lebi tasks** |
+| **[v4/user-model.md](v4/user-model.md)** | **Total-recall archive + five-layer user model: schema `003`, reflection, Notebook, archive API, forget/export/rebuild** |
+| **[v4/persona.md](v4/persona.md)** | **Lyra's persona bible, relationship levels, human behaviours, healthy-companion rules, gate G10** |
+| [v4/rename-lyra.md](v4/rename-lyra.md) | Medusa/Clarity → Lyra code rename (P0), with data-safety rules |
 | [v4/architecture.md](v4/architecture.md) | Target design: two-lane perception, multimodal brain, single voice, memory v4, latency and VRAM budgets |
 | [v4/roadmap.md](v4/roadmap.md) | Phases 0–6 and benchmark gates G0–G7 |
 | [v4/ui-redesign.md](v4/ui-redesign.md) | "Marginalia" UI direction, screens, tech plan |
 
-## Research (Nov 2026)
+## Research (Nov 2026; documents dated before 2026-11-24 say "Medusa")
 | Doc | What |
 |---|---|
 | [research/2026-11-current-state-audit.md](research/2026-11-current-state-audit.md) | Code and UI audit with `file:line` findings |
 | [research/2026-11-model-landscape.md](research/2026-11-model-landscape.md) | VLM / STT / TTS / turn / SER / embedding candidates with sources |
 | [research/2026-11-similar-projects.md](research/2026-11-similar-projects.md) | Open-source prior art and what to borrow (web search) |
+| [research/2026-11-human-likeness.md](research/2026-11-human-likeness.md) | What makes a voice companion feel human: timing, backchannels, voice presence, gradual intimacy, healthy use (with sources) |
+| [research/2026-11-user-modelling-memory.md](research/2026-11-user-modelling-memory.md) | Lifelong memory and user modelling: Generative Agents, Zep/Graphiti, Mem0, O-Mem, PERMA → our design |
 | [research/2026-11-reference-repos.md](research/2026-11-reference-repos.md) | Findings from reading the cloned repos in `reference/` (GLaDOS, HF s2s AEC, Smart Turn, airi, Indic-Mio…) |
 
 ## Archive: earlier plans (implemented or superseded, `docs/archive/`)
